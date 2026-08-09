@@ -1,26 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+*{
+    outline: none;
+    transition: all .3s;
+    -webkit-tap-highlight-color: transparent;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.light-mode {
+background-image: 
+    linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+    linear-gradient(to bottom, #f0f0f0 1px, transparent 1px),
+    radial-gradient(circle 600px at 0% 200px, #d5c5ff, transparent),
+    radial-gradient(circle 600px at 100% 200px, #d5c5ff, transparent);
+background-size: 20px 20px, 20px 20px, 100% 100%, 100% 100%;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.dark-mode {
+background-color: #0d0d12;
+background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle 600px at 0% 200px, rgba(120, 80, 255, 0.25), transparent),
+    radial-gradient(circle 600px at 100% 200px, rgba(120, 80, 255, 0.25), transparent);
+background-size: 20px 20px, 20px 20px, 100% 100%, 100% 100%;
 }
