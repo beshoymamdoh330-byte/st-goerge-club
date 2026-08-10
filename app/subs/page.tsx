@@ -1,9 +1,7 @@
 import React from 'react'
-
+import SubsPage from '../pages/SubsPage'
 export default function Subs() {
 return (
-    <div>
-        subs
-    </div>
+    <SubsPage/>
 )
 }

@@ -2,13 +2,14 @@
 import { useState } from "react"
 import { Icon, LockFill , UnlockFill } from "react-bootstrap-icons"
 import { LoginUser } from "../assets/assets"
-import { useFormContext } from "../assets/contexts"
+import { useFormContext, useThemeContext } from "../assets/contexts"
 
 export default function Login() {
     const [type , setType] = useState<string>("password")
     const [Icon , setIcon] = useState<Icon>(LockFill)
     const [user , setUser] = useState<LoginUser>({   email:"" , password:""})
     const {setForm} = useFormContext()
+    const {theme} = useThemeContext()
     const handleType = ()=>{
         if(type === "text"){
             setType("password") 
@@ -20,7 +21,7 @@ export default function Login() {
         }
     }
     return (
-        <article className=' w-11/12 border bg-gray-200 border-t-4 border-r-4 border-blue-600 md:w-200 p-3 rounded-2xl'>
+        <article className={` ${theme==="light"?" bg-gray-200 text-black":" bg-gray-800 text-white"} w-11/12 border bg-gray-200 border-t-4 border-r-4 border-blue-600 md:w-200 p-3 rounded-2xl`}>
             <h3 className='text-4xl  capitalize text-center  font-bold mb-3  text-blue-600'>login</h3>
             <form action="">
                 <input 

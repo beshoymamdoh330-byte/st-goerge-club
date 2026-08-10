@@ -28,6 +28,7 @@ export const FormProvider = ({children}: {children:ReactNode})=>{
     )
 }
 
+// users context
 interface usersTypeContext {
     users: SignupUser[] , 
     setUsers: Dispatch<SetStateAction<SignupUser[]>>
@@ -44,20 +45,35 @@ export const useUsersContext = ()=>{
 }
 
 export const UsersProvider = ({children}: {children:ReactNode})=>{
-    const [users , setUsers] = useState<SignupUser[]>([
-        {
-        id:"1",
-        userName:"st george" , 
-        email:"stgeorge@mail.com",
-        age:"20",
-        type:"pending",
-        image:  "/images/images.png" ,
-        password:"1234"
-    }
-    ])
+    const [users , setUsers] = useState<SignupUser[]>([])
     return(
         <UsersContext.Provider value={{users , setUsers}}>
             {children}
         </UsersContext.Provider>
+    )
+}
+//toggle theme context
+
+interface themeTypeContext {
+    theme: string , 
+    setTheme: Dispatch<SetStateAction<string>>
+}
+
+const ThemeContext = createContext<themeTypeContext | null>(null)
+
+export const useThemeContext = ()=>{
+    const context = useContext(ThemeContext)
+    if(!context){
+        throw new Error ("theme provider")
+    }
+    return context 
+}
+
+export const ThemeProvider = ({children}: {children:ReactNode})=>{
+    const [theme , setTheme] = useState<string>("light")
+    return(
+        <ThemeContext.Provider value={{theme , setTheme}}>
+            {children}
+        </ThemeContext.Provider>
     )
 }
