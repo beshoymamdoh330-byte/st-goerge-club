@@ -1,5 +1,4 @@
 import React from 'react';
-import { signedUsers } from '@/app/assets/assets';
 import ViewProfilePage from '@/app/pages/ViewProfilePage';
 export default async function Page({ params }:{params:Promise<{id:string}>} ) {
     const { id } = await params;

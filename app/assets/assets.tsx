@@ -3,31 +3,9 @@ export interface LoginUser {
     password: string,
 }
 
-export interface SignupUser {
-    id:string
-    userName:string,
-    email: string , 
-    number:string , 
-    password:string,
-    image:string ,
-    type:string ,
-    gender:string , 
-    confirmPassword:string
-}
 
-export const signedUsers:SignupUser[] = [
-    {
-        id:"1" , 
-        userName:"kero",
-        email:"kero@mail.com",
-        number:"151515",
-        password:"1215",
-        image:"/images/st-george-killing-dragon.png",
-        type:"prep" , 
-        gender:"male",
-        confirmPassword:"1235"
-    }
-]
+
+
 // 
 
 export interface NewUser {
@@ -37,22 +15,43 @@ export interface NewUser {
     type:string
 } 
 
-export interface memberType {
-    id:string , 
-    image:string , 
-    name:string , 
-    active:false ,
-    type:boolean
-}
-export interface subType {
-    id:string , 
-    image:string , 
-    name:string , 
-    active:false , 
-    type:boolean , 
-    date: Date
+export interface SignupUser {
+    id: string;
+    fullName: string;
+    email: string;
+    fullNumber: string;
+    password?: string;
+    image: string;
+    type: string;
+    gender: string;
+    confirmPassword?: string;
+    isActive?: boolean; // إضافة هذه الخاصية
 }
 
+export interface memberType {
+    id: string;
+    image: string;
+    fullName: string;
+    isActive: boolean;
+    fullNumber: string;
+}
+
+export interface subType {
+    id:string , 
+    name:string , 
+    isActive:boolean , 
+    durationInDays:number 
+    targetAgeGroup:number, 
+    price:number
+}
+
+export interface NewSub {
+    id?:string , 
+    name:string , 
+    durationInDays:number 
+    targetAgeGroup:number, 
+    price:number
+}
 //plan
 
 export interface PlanType{
@@ -93,11 +92,3 @@ export const plans:PlanType[] = [
         price:200
     }
 ]
-
-export interface NewSub {
-    id?:string , 
-    name:string,
-    price:number,
-    daysNum:number,
-    type:string
-}

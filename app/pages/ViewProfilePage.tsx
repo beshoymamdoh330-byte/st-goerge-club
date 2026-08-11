@@ -11,9 +11,7 @@ import { PenFill, Trash2Fill } from 'react-bootstrap-icons'
 export default function ViewProfilePage({ user }: { user: SignupUser }) {
     const { theme } = useThemeContext()
     const [edit, setEdit] = useState<boolean>(false)
-    // const [loading, setLoading] = useState<boolean>(false) // حالة التحميل لبطء الـ API
 
-    // البيانات المعروضة في الصفحة
     const [userData, setUserData] = useState<SignupUser>(user)
 
     // بيانات الـ Form المؤقتة للتعديل
@@ -27,7 +25,6 @@ export default function ViewProfilePage({ user }: { user: SignupUser }) {
     // دالة حفظ التعديلات وإرسالها للـ Database
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // setLoading(true)
 
         try {
             //  مكان طلب الـ API المستقبلي (مثال مع axios/fetch):
