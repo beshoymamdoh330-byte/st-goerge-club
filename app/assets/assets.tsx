@@ -9,10 +9,11 @@ export interface LoginUser {
 // 
 
 export interface NewUser {
-    name:string , 
-    email:string ,
-    password:string,
-    type:string
+    fullName:string , 
+    fullNumber:string ,
+    id:string,
+    image: string, 
+    isActive:boolean
 } 
 
 export interface SignupUser {

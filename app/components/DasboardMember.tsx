@@ -6,43 +6,64 @@ import { memberType } from '../assets/assets'
 import img from "../../public/images/st-george-killing-dragon.png"
 
 export default function DasboardMember({ member }: { member: memberType }) {
-    const [activToggle , setActiveToggle] = useState<boolean>(member.isActive)
+    const [activToggle, setActiveToggle] = useState<boolean>(member.isActive)
+
     const handleToggleActive = async () => {
+        // 1. حساب القيمة الجديدة أولاً
+        const nextState = !activToggle
+
+        // 2. تحديث الـ State محلياً فوراً لتجاوب السطح (Optimistic UI)
+        setActiveToggle(nextState)
+
         try {
-            setActiveToggle(!activToggle)
-            await fetch(https://mahinproject.runasp.net/api/User/${member.id}/toggle-active, 
-                {  method: 'Patch',
-                    headers: {
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify( {...member ,  isActive: activToggle } )
-                }
-            )
+            // 3. إضافة Backticks للرابط
+            const response = await fetch(`https://mahinproject.runasp.net/api/User/${member.id}/toggle-active`, {
+                method: 'PATCH', // الأفضل كتابتها Capital
+                headers: {
+                    'Content-Type': 'application/json' 
+                },
+                // إرسال القيمة الجديدة المضمونة
+                body: JSON.stringify({ ...member, isActive: nextState })
+            })
+
+            if (!response.ok) {
+                // لو السيرفر ضرب نرجع الـ State زي ما كانت
+                setActiveToggle(activToggle)
+            }
         }
         catch (err) {
             console.error(err)
+            // إرجاع الـ State الأصلية عند حدوث خطأ في الشبكة
+            setActiveToggle(activToggle)
         }
     } 
+
     return (
         <div className='p-4 hover:bg-white rounded-2xl gap-2.5 border border-blue-600 mb-2 flex flex-wrap items-center justify-between'>
-            <Link href={/viewProfile/${member.id}}>
+            {/* إحاطة href بـ curly braces و backticks */}
+            <Link href={`/viewProfile/${member.id}`}>
                 <Image 
                     src={member.image ? member.image : img}
-                    alt='img'
+                    alt='member photo'
                     width={300}
                     height={300}
                     className='w-20 h-20 rounded-full object-cover'
                 />
             </Link>
+
             <h3 className='text-2xl text-blue-600'>{member.fullName}</h3>
             
-            {/* عرض نص صريح بدلاً من طباعة البولين مباشرة */}
+            {/* استخدام activToggle للـ State التفاعلية */}
             <h3 className='text-2xl text-blue-600'>
-                الاشتراك: {member.isActive ? "نشط" : "غير نشط"}
+                الاشتراك: {activToggle ? "نشط" : "غير نشط"}
             </h3>
 
-            <button  onClick={handleToggleActive} className={p-3 text-white rounded-3xl ${member.isActive ? "bg-green-700" : "bg-red-700"}}>
-                {member.isActive ? "إلغاء التفعيل" : "تفعيل"}
+            {/* تصحيح className للزرار وتغيير اللون والفرز بناءً على activToggle */}
+            <button 
+                onClick={handleToggleActive} 
+                className={`p-3 text-white rounded-3xl cursor-pointer transition-colors ${activToggle ? "bg-red-700 hover:bg-red-800" : "bg-green-700 hover:bg-green-800"}`}
+            >
+                {activToggle ? "إلغاء التفعيل" : "تفعيل"}
             </button>
         </div>
     )
