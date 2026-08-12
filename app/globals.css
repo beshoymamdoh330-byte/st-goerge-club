@@ -24,12 +24,12 @@ background-image:
 background-size: 90px 90px, 90px 90px, 100% 100%, 100% 100%;
 }
 
-.home{
+/* .home{
     background-image: url(../public/images/image.png);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-}
+} */
 p{
     line-height: 1.4;
 }
