@@ -10,20 +10,20 @@ export interface NewUser {
     type: string;
 } 
 
-export interface SignupUser {
-    id: string;
-    fullName: string;
-    userName: string;
-    email: string;
-    fullNumber: string;
-    number: string;
-    password?: string;
-    image: string;
-    type: string;
-    gender: string;
-    confirmPassword?: string;
-    isActive?: boolean;
-}
+// export interface SignupUser {
+//     id: string;
+//     fullName: string;
+//     userName: string;
+//     email: string;
+//     fullNumber: string;
+//     number: string;
+//     password?: string;
+//     image: string;
+//     type: string;
+//     gender: string;
+//     confirmPassword?: string;
+//     isActive?: boolean;
+// }
 
 export interface memberType {
     id: string;
