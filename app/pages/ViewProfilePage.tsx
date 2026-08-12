@@ -1,6 +1,6 @@
 "use client"
 import Image from 'next/image'
-import { memberType } from '../assets/assets' // تم تغيير الاستيراد إلى memberType فقط
+import { memberType } from '../assets/assets'
 import { useState } from 'react'
 import { useThemeContext } from '../assets/contexts'
 import { PenFill, Trash2Fill, XLg } from 'react-bootstrap-icons'
@@ -9,11 +9,10 @@ import img from "../../public/images/st-george-killing-dragon.png"
 export default function ViewProfilePage({ member }: { member: memberType }) {
     const { theme } = useThemeContext()
     const [edit, setEdit] = useState<boolean>(false)
-
     const [userData, setUserData] = useState<memberType>(member)
 
-    // تم تغيير النوع هنا إلى memberType
-    const [newUser, setNewUser] = useState<memberType>({
+    // Form state typed directly with memberType
+    const [formData, setFormData] = useState<memberType>({
         id: userData.id,
         fullName: userData.fullName,
         isActive: userData.isActive,
@@ -25,40 +24,35 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
         e.preventDefault()
 
         try {
-            setUserData(prev => ({
-                ...prev,
-                fullName: newUser.fullName,
-                fullNumber: newUser.fullNumber,
-                id: newUser.id,
-                image: newUser.image
-            }))
-
+            setUserData(formData)
             setEdit(false)
         } catch (error) {
-            console.error("خطأ أثناء تحديث البيانات:", error)
+            console.error("Error updating user data:", error)
         }
     }
 
     return (
         <main className={`w-full bg-fixed py-5 pt-25 px-5 md:px-20 min-h-screen ${theme === "light" ? "light-mode" : "dark-mode"}`}>
             
+            {/* Edit Form */}
             <div className={`items-center ${edit ? "grid" : "hidden"} gap-2.5 p-5 mb-10 ${theme === "light" ? "bg-gray-200 text-black" : "bg-gray-800 text-white"} rounded-3xl border-b-4 border-r-4 border-blue-600 grid-cols-1 md:grid-cols-2 relative`}>
                 
                 <button 
+                    type="button"
                     onClick={() => setEdit(false)} 
                     className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors cursor-pointer"
                 >
                     <XLg size={16} />
                 </button>
 
-                <form onSubmit={handleEdit} className='grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 md:mt-0'>
+                <form onSubmit={handleEdit} className='grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 md:mt-0 col-span-1 md:col-span-2'>
                     <div>
                         <label className="text-sm font-semibold mb-1 block">Full Name</label>
                         <input
-                            onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                             className='w-full p-3 rounded-2xl border border-blue-600 focus:bg-blue-500 focus:text-white outline-none transition-all'
                             type="text"
-                            value={newUser.fullName}
+                            value={formData.fullName}
                             required
                         />
                     </div>
@@ -66,10 +60,10 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                     <div>
                         <label className="text-sm font-semibold mb-1 block">Phone Number</label>
                         <input
-                            onChange={(e) => setNewUser({ ...newUser, fullNumber: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, fullNumber: e.target.value })}
                             className='w-full p-3 rounded-2xl border border-blue-600 focus:bg-blue-500 focus:text-white outline-none transition-all'
                             type="text"
-                            value={newUser.fullNumber}
+                            value={formData.fullNumber}
                             required
                         />
                     </div>
@@ -81,18 +75,9 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                         Save Changes
                     </button>
                 </form>
-
-                <div className="flex items-center justify-center flex-col gap-2.5">
-                    <Image
-                        src={userData?.image ? userData.image : img}
-                        alt='Member Profile'
-                        width={300}
-                        height={300}
-                        className='w-48 h-48 rounded-full object-cover border-2 border-blue-600'
-                    />
-                </div>
             </div>
 
+            {/* Profile Display */}
             <div className='grid grid-cols-1 items-center md:grid-cols-2 gap-6'>
                 <div className="flex justify-center">
                     <Image
@@ -116,13 +101,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
 
                         <button 
                             onClick={() => {
-                                setNewUser({
-                                    fullName: userData.fullName,
-                                    fullNumber: userData.fullNumber,
-                                    id: userData.id,
-                                    image: userData.image,
-                                    isActive: userData.isActive
-                                })
+                                setFormData({ ...userData })
                                 setEdit(true)
                             }} 
                             className='flex items-center w-full p-3 rounded-2xl justify-center gap-2.5 bg-blue-600 hover:bg-blue-800 text-white transition-colors cursor-pointer'
