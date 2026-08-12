@@ -12,11 +12,11 @@ export interface NewUser {
 
 export interface SignupUser {
     id: string;
-    fullName?: string;
-    userName?: string;
+    fullName: string;
+    userName: string;
     email: string;
-    fullNumber?: string;
-    number?: string;
+    fullNumber: string;
+    number: string;
     password?: string;
     image: string;
     type: string;
