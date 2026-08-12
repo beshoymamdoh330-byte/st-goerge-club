@@ -2,7 +2,7 @@
 "use client"
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { SignupUser, memberType } from '../assets/assets'
+import { memberType } from '../assets/assets'
 import DasboardMember from './DasboardMember'
 import { useFormContext, useThemeContext } from '../assets/contexts'
 import { Search } from 'react-bootstrap-icons'
@@ -11,7 +11,7 @@ export default function DashboardMembers() {
     const { setForm } = useFormContext()
     const [searchValue, setSearchValue] = useState<string>("")
     const { theme } = useThemeContext()
-    const [allUsers, setAllUsers] = useState<SignupUser[]>([])
+    const [allUsers, setAllUsers] = useState<memberType[]>([])
 
     const getAllUsers = async () => {
         try{
