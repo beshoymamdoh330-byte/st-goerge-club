@@ -17,11 +17,11 @@ export interface NewUser {
 
 export interface SignupUser {
     id: string;
-    fullName: string;
-    userName?: string;     // إضافة هذه الخاصية
+    fullName?: string;    // إضافة ? تجعلها اختيارية ولن يطالب بها TypeScript
+    userName?: string;
     email: string;
-    fullNumber: string;
-    number?: string;       // إضافة هذه الخاصية
+    fullNumber?: string;  // إضافة ? تجعلها اختيارية
+    number?: string;
     password?: string;
     image: string;
     type: string;
