@@ -1,6 +1,6 @@
 "use client"
 import Image from 'next/image'
-import { memberType, NewUser } from '../assets/assets'
+import { memberType } from '../assets/assets' // تم تغيير الاستيراد إلى memberType فقط
 import { useState } from 'react'
 import { useThemeContext } from '../assets/contexts'
 import { PenFill, Trash2Fill, XLg } from 'react-bootstrap-icons'
@@ -12,8 +12,8 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
 
     const [userData, setUserData] = useState<memberType>(member)
 
-    // بيانات الـ Form المؤقتة للتعديل
-    const [newUser, setNewUser] = useState<NewUser>({
+    // تم تغيير النوع هنا إلى memberType
+    const [newUser, setNewUser] = useState<memberType>({
         id: userData.id,
         fullName: userData.fullName,
         isActive: userData.isActive,
@@ -21,12 +21,10 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
         image: userData.image
     })
 
-    // دالة حفظ التعديلات وإرسالها للـ Database
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         try {
-            // تحديث الواجهة فوراً بالتغييرات الجديدة
             setUserData(prev => ({
                 ...prev,
                 fullName: newUser.fullName,
@@ -35,7 +33,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                 image: newUser.image
             }))
 
-            setEdit(false) // إغلاق النموذج
+            setEdit(false)
         } catch (error) {
             console.error("خطأ أثناء تحديث البيانات:", error)
         }
@@ -44,10 +42,8 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
     return (
         <main className={`w-full bg-fixed py-5 pt-25 px-5 md:px-20 min-h-screen ${theme === "light" ? "light-mode" : "dark-mode"}`}>
             
-            {/* Form التعديل */}
             <div className={`items-center ${edit ? "grid" : "hidden"} gap-2.5 p-5 mb-10 ${theme === "light" ? "bg-gray-200 text-black" : "bg-gray-800 text-white"} rounded-3xl border-b-4 border-r-4 border-blue-600 grid-cols-1 md:grid-cols-2 relative`}>
                 
-                {/* زر إغلاق النموذج (Cancel) */}
                 <button 
                     onClick={() => setEdit(false)} 
                     className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors cursor-pointer"
@@ -97,7 +93,6 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                 </div>
             </div>
 
-            {/* عرض بيانات الملف الشخصي */}
             <div className='grid grid-cols-1 items-center md:grid-cols-2 gap-6'>
                 <div className="flex justify-center">
                     <Image

@@ -18,14 +18,16 @@ export interface NewUser {
 export interface SignupUser {
     id: string;
     fullName: string;
+    userName?: string;     // إضافة هذه الخاصية
     email: string;
     fullNumber: string;
+    number?: string;       // إضافة هذه الخاصية
     password?: string;
     image: string;
     type: string;
     gender: string;
     confirmPassword?: string;
-    isActive?: boolean; // إضافة هذه الخاصية
+    isActive?: boolean;
 }
 
 export interface memberType {
