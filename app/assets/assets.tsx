@@ -18,16 +18,14 @@ export interface NewUser {
 export interface SignupUser {
     id: string;
     fullName: string;
-    userName?: string;     // تم إضافة الخاصية لإنهاء خطأ TS2353/TS2339
     email: string;
     fullNumber: string;
-    number?: string;       // تم إضافة الخاصية لإنهاء خطأ TS2353/TS2339
     password?: string;
     image: string;
     type: string;
     gender: string;
     confirmPassword?: string;
-    isActive?: boolean;
+    isActive?: boolean; // إضافة هذه الخاصية
 }
 
 export interface memberType {
