@@ -18,6 +18,7 @@ export default function DashboardMembers() {
         const response = await fetch("https://mahinproject.runasp.net/api/User/get-all-user")
         const results = await response.json()
         setAllUsers(results)
+        console.log(results)
         }catch(err){
             console.error(err)
         }
@@ -38,6 +39,7 @@ export default function DashboardMembers() {
             fullName: user.fullName ?? "",
             fullNumber: user.fullNumber ?? "",
             image: user.image,
+            role:user.role,
             isActive: user.isActive ?? false // قيمة افتراضية في حال عدم وجودها
         }
 

@@ -31,6 +31,7 @@ export interface memberType {
     fullName: string;
     isActive: boolean;
     fullNumber: string;
+    role:string
 }
 
 export interface subType {

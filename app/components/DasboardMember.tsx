@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, {  useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { memberType } from '../assets/assets'
@@ -9,10 +9,8 @@ export default function DasboardMember({ member }: { member: memberType }) {
     const [activToggle, setActiveToggle] = useState<boolean>(member.isActive)
 
     const handleToggleActive = async () => {
-        // 1. حساب القيمة الجديدة أولاً
         const nextState = !activToggle
 
-        // 2. تحديث الـ State محلياً فوراً لتجاوب السطح (Optimistic UI)
         setActiveToggle(nextState)
 
         try {
@@ -38,10 +36,10 @@ export default function DasboardMember({ member }: { member: memberType }) {
         }
     } 
 
+
     return (
         <div className='p-4 hover:bg-white rounded-2xl gap-2.5 border border-blue-600 mb-2 flex flex-wrap items-center justify-between'>
-            {/* إحاطة href بـ curly braces و backticks */}
-            <Link href={`/viewProfile/${member.id}`}>
+            <Link href={member?.role==="Admin"?`/viewProfile/${member.id}`:"/"}>
                 <Image 
                     src={member.image ? member.image : img}
                     alt='member photo'
@@ -53,7 +51,6 @@ export default function DasboardMember({ member }: { member: memberType }) {
 
             <h3 className='text-2xl text-blue-600'>{member.fullName}</h3>
             
-            {/* استخدام activToggle للـ State التفاعلية */}
             <h3 className='text-2xl text-blue-600'>
                 الاشتراك: {activToggle ? "نشط" : "غير نشط"}
             </h3>
