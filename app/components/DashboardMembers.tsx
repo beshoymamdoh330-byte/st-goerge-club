@@ -35,9 +35,9 @@ export default function DashboardMembers() {
         // تحويل بيانات المستخدم إلى نوع memberType لتمريرها بشكل صحيح
         const memberData: memberType = {
             id: user.id,
-            fullName: user.fullName,
+            fullName: user.fullName ?? "",
+            fullNumber: user.fullNumber ?? "",
             image: user.image,
-            fullNumber: user.fullNumber,
             isActive: user.isActive ?? false // قيمة افتراضية في حال عدم وجودها
         }
 
