@@ -225,13 +225,13 @@ export default function SignUp() {
     const [user, setUser] = useState<SignupUser>({
         id: "",
         confirmPassword: "",
-        gender: "",
+        gender: "1", // تعيين القيمة الافتراضية 1 (male)
         userName: "",
         fullName: "",
         number: "",
         fullNumber: "",
         image: "",
-        type: "prep",
+        type: "1", // تعيين القيمة الافتراضية 1 رقمياً
         email: "",
         password: ""
     })
@@ -240,19 +240,19 @@ export default function SignUp() {
         setUser({
             id: "",
             confirmPassword: "",
-            gender: "",
+            gender: "1",
             userName: "",
             fullName: "",
             number: "",
             fullNumber: "",
             image: "",
-            type: "prep",
+            type: "1",
             email: "",
             password: ""
         })
     }
 
-    // 🌐 دالة الإرسال لـ API الـ Register
+    // 🌐 دالة التسجيل المربوطة بالـ API بالأسماء والأنواع الصحيحة
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -263,22 +263,25 @@ export default function SignUp() {
 
         setLoading(true)
 
+        // تجهيز الـ JSON بالضبط كما يطلبه الـ API
+        const payload = {
+            email: user.email,
+            phoneNumber: user.number || user.fullNumber,
+            password: user.password,
+            confirmPassword: user.confirmPassword,
+            fullName: user.fullName || user.userName,
+            gender: Number(user.gender),     // تحويل القيمة إلى رقم Integer
+            photoUrl: user.image || "",      // تم تعديل الاسم إلى photoUrl
+            ageGroup: Number(user.type)      // تحويل المرحلة إلى رقم Integer
+        }
+
         try {
             const res = await fetch("https://mahinproject.runasp.net/api/Auth/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    userName: user.userName,
-                    fullName: user.fullName || user.userName,
-                    email: user.email,
-                    password: user.password,
-                    phoneNumber: user.number || user.fullNumber,
-                    gender: user.gender,
-                    type: user.type,
-                    image: user.image
-                })
+                body: JSON.stringify(payload)
             })
 
             const data = await res.json()
@@ -288,11 +291,19 @@ export default function SignUp() {
                 setUsers([...users, user])
                 clearInputs()
                 
-                // الانتقال لصفحة اللوجن
                 if (setForm) setForm("login")
                 router.push("/login")
             } else {
-                alert(data.message || data.title || "حدث خطأ أثناء إنشاء الحساب، أعد المحاولة.")
+                console.error("Validation Errors from Server:", data)
+
+                if (data.errors) {
+                    const errorMessages = Object.entries(data.errors)
+                        .map(([key, msgs]) => `${key}: ${(msgs as string[]).join(", ")}`)
+                        .join("\n")
+                    alert(`خطأ في البيانات المدخلة:\n${errorMessages}`)
+                } else {
+                    alert(data.message || data.title || "حدث خطأ أثناء إنشاء الحساب.")
+                }
             }
         } catch (error) {
             console.error("Registration Error:", error)
@@ -310,9 +321,9 @@ export default function SignUp() {
                 <input 
                     className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black outline-none' 
                     type="text" 
-                    placeholder='username...'
+                    placeholder='full name / username...'
                     value={user.userName}
-                    onChange={(e) => setUser({ ...user, userName: e.target.value })}
+                    onChange={(e) => setUser({ ...user, userName: e.target.value, fullName: e.target.value })}
                     required
                 />
 
@@ -321,7 +332,7 @@ export default function SignUp() {
                     type="text" 
                     placeholder='phone number...'
                     value={user.number}
-                    onChange={(e) => setUser({ ...user, number: e.target.value })}
+                    onChange={(e) => setUser({ ...user, number: e.target.value, fullNumber: e.target.value })}
                     required
                 />
 
@@ -340,17 +351,17 @@ export default function SignUp() {
                 />
 
                 <div>
-                    <label className="w-full mb-1 block">Choose a stage:</label>
+                    <label className="w-full mb-1 block">Choose age group / stage:</label>
                     <select 
                         className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black outline-none' 
                         value={user.type}
                         onChange={(e) => setUser({ ...user, type: e.target.value })}
                     >
-                        <option value="prep">prep</option> 
-                        <option value="prime">prime</option> 
-                        <option value="second">second</option> 
-                        <option value="uni">uni</option> 
-                        <option value="grads">grads</option> 
+                        <option value="1">prep</option> 
+                        <option value="2">prime</option> 
+                        <option value="3">second</option> 
+                        <option value="4">uni</option> 
+                        <option value="5">grads</option> 
                     </select>
                 </div>
                 
@@ -372,8 +383,8 @@ export default function SignUp() {
                                 onChange={(e) => setUser({ ...user, gender: e.target.value })} 
                                 type="radio" 
                                 id="male" 
-                                value="male" 
-                                checked={user.gender === "male"}
+                                value="1" 
+                                checked={user.gender === "1"}
                             />
                         </div>
                         <div className="flex items-center gap-2.5">
@@ -382,8 +393,8 @@ export default function SignUp() {
                                 onChange={(e) => setUser({ ...user, gender: e.target.value })} 
                                 type="radio" 
                                 id="female" 
-                                value="female" 
-                                checked={user.gender === "female"}
+                                value="2" 
+                                checked={user.gender === "2"}
                             />
                         </div>
                     </div>
