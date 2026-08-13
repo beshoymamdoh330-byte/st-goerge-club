@@ -17,7 +17,8 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
         fullName: userData.fullName,
         isActive: userData.isActive,
         fullNumber: userData.fullNumber,   
-        image: userData.image
+        image: userData.image , 
+        role: userData.role
     })
 
     const handleEdit = async (e: React.FormEvent) => {
