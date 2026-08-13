@@ -1,12 +1,39 @@
 "use client"
-import React, {  useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { memberType } from '../assets/assets'
 import img from "../../public/images/st-george-killing-dragon.png"
+import { jwtDecode } from 'jwt-decode'
 
 export default function DasboardMember({ member }: { member: memberType }) {
     const [activToggle, setActiveToggle] = useState<boolean>(member.isActive)
+    const [role, setRole] = useState('');
+
+useEffect(() => {
+    const currentToken = localStorage.getItem("token")
+    
+    if (currentToken) {
+        try {
+            const decoded: any = jwtDecode(currentToken)
+            const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+
+            // التأكد مما إذا كانت الرتبة مصفوفة (Multiple Roles) أم نص عادي
+            if (Array.isArray(roleClaim)) {
+                // يمكنك حفظ كل الأدوار أو التحقق لو كان بينها "admin"
+                setRole(roleClaim.includes("admin") ? "admin" : roleClaim[0])
+            } else {
+                setRole(roleClaim)
+            }
+        } catch (error) {
+            console.error("Invalid token:", error)
+            // في حالة التوكن التالف، يفضل مسحه من localStorage
+            localStorage.removeItem("token")
+        }
+    }
+}, [])
+
+
 
     const handleToggleActive = async () => {
         const nextState = !activToggle
@@ -37,9 +64,10 @@ export default function DasboardMember({ member }: { member: memberType }) {
     } 
 
 
+
     return (
         <div className='p-4 hover:bg-white rounded-2xl gap-2.5 border border-blue-600 mb-2 flex flex-wrap items-center justify-between'>
-            <Link href={member?.role==="Admin"?`/viewProfile/${member.id}`:"/"}>
+            <Link href={role==="Admin"?`/viewProfile/${member.id}`:"/"}>
                 <Image 
                     src={member.image ? member.image : img}
                     alt='member photo'
