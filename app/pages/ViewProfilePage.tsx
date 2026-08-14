@@ -1441,7 +1441,8 @@ import {
     CardChecklist, 
     CalendarEventFill, 
     HourglassSplit,
-    CloudUploadFill
+    CloudUploadFill,
+    GenderAmbiguous
 } from 'react-bootstrap-icons'
 import img from "../../public/images/st-george-killing-dragon.png"
 import { useRouter } from 'next/navigation'
@@ -1449,21 +1450,34 @@ import { jwtDecode } from 'jwt-decode'
 
 interface DecodedToken {
     "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"?: string | string[];
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"?: string;
+    role?: string | string[];
+    nameid?: string;
+    sub?: string;
     [key: string]: unknown;
 }
 
-export interface UserResponseDto {
+export interface ActiveSubscriptionDto {
+    subscriptionPlanId?: number;
+    planName?: string;
+    price?: number;
+    startDate?: string;
+    endDate?: string;
+    isActive?: boolean;
+}
+
+export interface UserApiResponse {
     id: string;
     fullName: string;
     phoneNumber: string;
-    email?: string;
     photoUrl?: string;
+    nfcUrl?: string;
+    email?: string;
     isActive: boolean;
+    gender?: string | number;
+    ageGroup?: string | number;
     role?: string;
-    age?: number | string;
-    subscriptionName?: string;
-    createdAt?: string;
-    expirationDate?: string;
+    activeSubscription?: ActiveSubscriptionDto | null;
 }
 
 export interface ExtendedMemberType {
@@ -1474,7 +1488,8 @@ export interface ExtendedMemberType {
     image: string;
     role: string;
     isActive: boolean;
-    age: string;
+    ageGroup: string;
+    gender: string;
     subscriptionName: string;
     createdAt: string;
     expirationDate: string;
@@ -1488,10 +1503,30 @@ const defaultMember: ExtendedMemberType = {
     image: "",
     role: "",
     isActive: false,
-    age: "غير محدد",
-    subscriptionName: "لا يوجد اشتراك",
+    ageGroup: "غير محدد",
+    gender: "Male",
+    subscriptionName: "لا يوجد اشتراك نشط",
     createdAt: "غير محدد",
     expirationDate: "غير محدد"
+}
+
+// دالة مساعدة لتحويل قيمة ageGroup إلى نص للعرض
+const parseAgeGroupToString = (val?: string | number): string => {
+    if (!val) return "غير محدد"
+    const strVal = String(val).trim()
+    if (strVal === "1" || strVal.includes("ابتدائي")) return "ابتدائي"
+    if (strVal === "2" || strVal.includes("إعدادي")) return "إعدادي"
+    if (strVal === "3" || strVal.includes("ثانوي")) return "ثانوي"
+    return strVal
+}
+
+// دالة مساعدة لتحويل قيمة ageGroup إلى رقم للباك إند
+const parseAgeGroupToNumber = (val: string | number): number => {
+    const strVal = String(val).trim()
+    if (strVal === "1" || strVal.includes("ابتدائي")) return 1
+    if (strVal === "2" || strVal.includes("إعدادي")) return 2
+    if (strVal === "3" || strVal.includes("ثانوي")) return 3
+    return Number(val) || 1
 }
 
 export default function ViewProfilePage({ member }: { member?: Partial<ExtendedMemberType> }) {
@@ -1504,17 +1539,20 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
 
     const [edit, setEdit] = useState<boolean>(false)
     const [userData, setUserData] = useState<ExtendedMemberType>({ ...defaultMember, ...member })
-    
-    // حالة نموذج التعديل
+
+    // احتواء الـ id والبيانات في الـ formData
     const [formData, setFormData] = useState({
+        id: "",
         fullName: "",
         fullNumber: "",
         email: "",
+        ageGroup: 1, // 1: ابتدائي, 2: إعدادي, 3: ثانوي
+        gender: 1,   // 1: ذكر (Male), 2: أنثى (Female)
         imageFile: null as File | null,
         imagePreview: ""
     })
 
-    // 🔒 1. جلب البيانات الأصلية من الباك إند عند فتح الصفحة
+    // 🔒 1. التحقق وجلب البيانات عند البداية
     useEffect(() => {
         const verifyAndFetch = async () => {
             const token = localStorage.getItem("token")
@@ -1526,8 +1564,8 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
 
             try {
                 const decoded = jwtDecode(token) as DecodedToken
-                const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
 
+                const roleClaim = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || decoded.role
                 let isAdmin = false
                 if (Array.isArray(roleClaim)) {
                     isAdmin = roleClaim.some(r => typeof r === 'string' && r.toLowerCase() === 'admin')
@@ -1535,16 +1573,25 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     isAdmin = roleClaim.toLowerCase() === 'admin'
                 }
 
-                if (!isAdmin) {
+                const currentUserId = (
+                    decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+                    decoded.nameid ||
+                    decoded.sub
+                ) as string | undefined
+
+                const targetUserId = member?.id
+
+                if (targetUserId && targetUserId !== currentUserId && !isAdmin) {
                     router.replace('/')
                     return
                 }
 
                 setIsAuthorized(true)
 
-                const userId = member?.id || userData.id
-                if (userId) {
-                    const res = await fetch(`https://mahinproject.runasp.net/api/User/get-user/${userId}`, {
+                const userIdToFetch = targetUserId || currentUserId || userData.id
+
+                if (userIdToFetch) {
+                    const res = await fetch(`https://mahinproject.runasp.net/api/User/get-user/${userIdToFetch}`, {
                         headers: { 
                             "Authorization": `Bearer ${token}`,
                             "Content-Type": "application/json"
@@ -1552,30 +1599,40 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     })
 
                     if (res.ok) {
-                        const data: UserResponseDto = await res.json()
-                        
+                        const data: UserApiResponse = await res.json()
+                        const sub = data.activeSubscription
+
+                        const formattedStartDate = sub?.startDate 
+                            ? new Date(sub.startDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
+                            : "غير محدد"
+
+                        const formattedEndDate = sub?.endDate 
+                            ? new Date(sub.endDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
+                            : "غير محدد"
+
+                        const subscriptionTitle = sub?.planName 
+                            ? `${sub.planName} (${sub.price} ج.م)` 
+                            : "لا يوجد اشتراك نشط"
+
+                        const rawGender = String(data.gender)
+                        const isMale = rawGender === "1" || rawGender.toLowerCase() === "male"
+
                         const fetchedUser: ExtendedMemberType = {
-                            id: data.id || userId,
+                            id: data.id || userIdToFetch,
                             fullName: data.fullName || "",
                             fullNumber: data.phoneNumber || "",
                             email: data.email || "",
                             isActive: data.isActive ?? false,
                             image: data.photoUrl || "",
-                            role: data.role || "Member",
-                            age: data.age ? `${data.age} سنة` : "غير محدد",
-                            subscriptionName: data.subscriptionName || "لا يوجد اشتراك",
-                            createdAt: data.createdAt ? new Date(data.createdAt).toLocaleDateString('ar-EG') : "غير محدد",
-                            expirationDate: data.expirationDate ? new Date(data.expirationDate).toLocaleDateString('ar-EG') : "غير محدد"
+                            role: data.role || "user",
+                            ageGroup: parseAgeGroupToString(data.ageGroup),
+                            gender: isMale ? "Male" : "Female",
+                            subscriptionName: subscriptionTitle,
+                            createdAt: formattedStartDate,
+                            expirationDate: formattedEndDate
                         }
 
                         setUserData(fetchedUser)
-                        setFormData({
-                            fullName: fetchedUser.fullName,
-                            fullNumber: fetchedUser.fullNumber,
-                            email: fetchedUser.email,
-                            imageFile: null,
-                            imagePreview: fetchedUser.image
-                        })
                     }
                 }
             } catch (error) {
@@ -1590,54 +1647,88 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
         verifyAndFetch()
     }, [router, member?.id])
 
-    // 📸 2. قراءة الصورة وتحويلها لـ Base64 لمعاينتها وإرسالها
+    // 📸 2. معالجة معاينة رفع الصورة
     const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                alert("تنبيه: يفضل اختيار صورة أقل من 2 ميجابايت لضمان سرعة التحديث في الباك إند")
-            }
-
             const reader = new FileReader()
             reader.onloadend = () => {
-                const base64String = reader.result as string
                 setFormData(prev => ({
                     ...prev,
                     imageFile: file,
-                    imagePreview: base64String
+                    imagePreview: reader.result as string
                 }))
             }
             reader.readAsDataURL(file)
         }
     }
 
-    // ✏️ 3. حفظ التعديلات وإرسالها حتمياً للباك إند (PUT)
+    // ✏️ 3. فتح وتعبئة مودال التعديل بربط الـ id والبيانات الحالية
+    const openEditModal = () => {
+        setFormData({
+            id: userData.id,
+            fullName: userData.fullName || "",
+            fullNumber: userData.fullNumber || "",
+            email: userData.email || "",
+            ageGroup: parseAgeGroupToNumber(userData.ageGroup),
+            gender: userData.gender === "Male" ? 1 : 2,
+            imageFile: null,
+            imagePreview: userData.image || ""
+        })
+        setEdit(true)
+    }
+
+    // 💾 4. دالة التعديل بأسلوب PUT مع طباعة التفاصيل والتوافق الأقصى
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
         const token = localStorage.getItem("token")
 
         if (!token) {
-            alert("جلسة التسجيل انتهت، يرجى إعادة تسجيل الدخول")
+            alert("❌ جلسة تسجيل الدخول انتهت، يرجى إعادة تسجيل الدخول.")
             return
         }
 
-        if (!userData.id) {
-            alert("خطأ: معرف المستخدم (ID) غير متاح للتحديث")
+        // جلب الـ ID من كافة المصادر المتاحة (FormData -> UserData -> Token)
+        let currentId = formData.id || userData.id
+        if (!currentId || String(currentId).trim() === "") {
+            try {
+                const decoded: DecodedToken = jwtDecode(token)
+                currentId = (
+                    decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+                    decoded.nameid ||
+                    decoded.sub ||
+                    ""
+                ) as string
+            } catch (err) {
+                console.error("Token decoding error:", err)
+            }
+        }
+
+        const cleanId = String(currentId).trim()
+
+        if (!cleanId) {
+            alert("❌ خطأ: تعذر العثور على ID المستخدم!")
             return
         }
 
         setIsSubmitting(true)
-        try {
-            // كائن البيانات الذي سينتقل للـ Backend
-            const updatePayload = {
-                id: userData.id,
-                fullName: formData.fullName,
-                phoneNumber: formData.fullNumber,
-                email: formData.email,
-                photoUrl: formData.imagePreview // يرسل الصورة المحدثة أونلاين أو Base64
-            }
 
-            const res = await fetch(`https://mahinproject.runasp.net/api/User/update-user/${userData.id}`, {
+        // إعداد البيانات وتجنب إرسال null لأي حقل
+        const updatePayload = {
+            id: cleanId,
+            fullName: formData.fullName?.trim() || userData.fullName || "",
+            photoUrl: formData.imagePreview || userData.image || "",
+            phoneNumber: formData.fullNumber?.trim() || userData.fullNumber || "",
+            email: formData.email?.trim() || userData.email || "",
+            ageGroup: Number(formData.ageGroup) || 1,
+            gender: Number(formData.gender) || 1
+        }
+
+        console.log("🚀 Payload Being Sent:", JSON.stringify(updatePayload, null, 2))
+
+        try {
+            // إرسال طلب PUT مع إرفاق الـ ID في الـ Query String والـ Body لضمان التوافق مع الباك إند
+            const res = await fetch(`https://mahinproject.runasp.net/api/User/update-user?id=${cleanId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -1646,99 +1737,84 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                 body: JSON.stringify(updatePayload)
             })
 
+            const responseData = await res.text()
+            console.log("📥 Server Response:", responseData)
+
             if (res.ok) {
-                alert("تم تحديث البيانات والحفظ في قاعدة البيانات بنجاح! ✅")
-                
-                // تحديث الواجهة فور تأكيد الحفظ في السيرفر
+                alert("تم حفظ التعديلات بنجاح! ✅")
+
                 setUserData(prev => ({
                     ...prev,
-                    fullName: formData.fullName,
-                    fullNumber: formData.fullNumber,
-                    email: formData.email,
-                    image: formData.imagePreview
+                    id: cleanId,
+                    fullName: updatePayload.fullName,
+                    fullNumber: updatePayload.phoneNumber,
+                    email: updatePayload.email,
+                    ageGroup: parseAgeGroupToString(updatePayload.ageGroup),
+                    gender: updatePayload.gender === 1 ? "Male" : "Female",
+                    image: updatePayload.photoUrl
                 }))
+
                 setEdit(false)
             } else {
-                const errorText = await res.text()
-                console.error("Backend Error Response:", errorText)
-                alert(`فشل التحديث في الباك إند (كود الخطأ ${res.status}):\n${errorText}`)
+                alert(`فشل التحديث من الباك إند (${res.status}):\n${responseData}`)
             }
         } catch (error) {
-            console.error("Network or Client Error:", error)
-            alert("تعذر الاتصال بالباك إند، تأكد من اتصال الإنترنت أو إعدادات السيرفر")
+            console.error("Fetch Error:", error)
+            alert("حدث خطأ في الاتصال بالباك إند")
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    // 🗑️ 4. طلب حذف المستخدم نهائياً من الباك إند (DELETE)
+    // 🗑️ 5. حذف المستخدم
     const handleDelete = async () => {
-        if (!userData.id) {
-            alert("خطأ: معرف المستخدم غير معروف")
-            return
-        }
-
-        if (!confirm("هل أنت متأكد من حذف هذا المستخدم نهائياً من قاعدة البيانات؟")) return;
+        if (!userData.id || !confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return
 
         const token = localStorage.getItem("token")
-        if (!token) {
-            alert("غير مصرح لك، يرجى إعادة تسجيل الدخول")
-            return
-        }
+        if (!token) return
 
         try {
             const res = await fetch(`https://mahinproject.runasp.net/api/User/delete-user/${userData.id}`, {
                 method: "DELETE",
                 headers: { 
-                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}` 
                 }
             })
 
             if (res.ok) {
-                alert("تم حذف المستخدم بنجاح من الباك إند! 🗑️")
+                alert("تم الحذف بنجاح! 🗑️")
                 router.push('/dashboard/members')
-                router.refresh()
-            } else {
-                const errorText = await res.text()
-                console.error("Delete Error Response:", errorText)
-                alert(`فشل الحذف من السيرفر (كود الخطأ ${res.status}):\n${errorText}`)
             }
         } catch (error) {
-            console.error("Error deleting user:", error)
-            alert("حدث خطأ في الشبكة أثناء محاولة الحذف")
+            console.error(error)
         }
     }
 
     if (isLoading || !isAuthorized) {
         return (
             <div className={`w-full min-h-screen flex items-center justify-center ${theme === "light" ? "bg-white text-black" : "bg-gray-950 text-white"}`}>
-                <p className="text-xl font-bold text-blue-600 animate-pulse">جاري الاتصال بالسيرفر والتحقق من البيانات...</p>
+                <p className="text-xl font-bold text-blue-600 animate-pulse">جاري التحقق وجلب البيانات...</p>
             </div>
         )
     }
 
     return (
         <main className={`w-full py-10 pt-28 px-5 md:px-20 min-h-screen transition-colors ${theme === "light" ? "bg-gray-50 text-gray-900" : "bg-gray-950 text-white"}`}>
-            
-            {/* 📝 نموذج تعديل البيانات المربوط بالباك إند */}
+
+            {/* 📝 نموذج التعديل */}
             {edit && (
-                <div className={`p-6 mb-10 border-2 border-blue-600 rounded-3xl relative shadow-xl backdrop-blur-md ${theme === "light" ? "bg-white/90 text-black" : "bg-gray-900/90 text-white"}`}>
+                <div className={`p-6 mb-10 border-2 border-blue-600 rounded-3xl relative shadow-xl ${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"}`}>
                     <div className="flex justify-between items-center mb-6 border-b pb-3 border-gray-300 dark:border-gray-700">
-                        <h2 className="text-2xl font-bold text-blue-600">تعديل بيانات المستخدم في الباك إند</h2>
-                        <button 
-                            type="button"
-                            onClick={() => setEdit(false)} 
-                            className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all cursor-pointer"
-                        >
+                        <h2 className="text-2xl font-bold text-blue-600">تعديل بيانات المستخدم</h2>
+                        <button type="button" onClick={() => setEdit(false)} className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all cursor-pointer">
                             <XLg size={16} />
                         </button>
                     </div>
 
                     <form onSubmit={handleEdit} className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        
-                        {/* 🖼️ معايرة ورفع الصورة */}
-                        <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-400 dark:border-blue-700 rounded-2xl bg-blue-50/40 dark:bg-gray-800/40 mb-2">
+
+                        {/* photoUrl */}
+                        <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-400 rounded-2xl mb-2">
                             <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-blue-600 mb-3 shadow-md">
                                 <Image
                                     src={formData.imagePreview && formData.imagePreview.trim() !== "" ? formData.imagePreview : img}
@@ -1752,22 +1828,11 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                             <label className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm cursor-pointer shadow-md transition-all">
                                 <CloudUploadFill size={18} />
                                 <span>اختيار صورة جديدة</span>
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    onChange={handleImageFileChange} 
-                                    className="hidden" 
-                                />
+                                <input type="file" accept="image/*" onChange={handleImageFileChange} className="hidden" />
                             </label>
-
-                            {formData.imageFile && (
-                                <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-medium">
-                                    ✓ تم تجهيز الصورة: {formData.imageFile.name}
-                                </p>
-                            )}
                         </div>
 
-                        {/* 1️⃣ الاسم */}
+                        {/* fullName */}
                         <div>
                             <label className="text-sm font-semibold mb-1 block">الاسم بالكامل</label>
                             <input
@@ -1779,7 +1844,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                             />
                         </div>
 
-                        {/* 2️⃣ رقم الهاتف */}
+                        {/* phoneNumber */}
                         <div>
                             <label className="text-sm font-semibold mb-1 block">رقم الهاتف</label>
                             <input
@@ -1791,7 +1856,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                             />
                         </div>
 
-                        {/* 3️⃣ البريد الإلكتروني */}
+                        {/* email */}
                         <div className="col-span-1 md:col-span-2">
                             <label className="text-sm font-semibold mb-1 block">البريد الإلكتروني</label>
                             <input
@@ -1803,20 +1868,48 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                             />
                         </div>
 
+                        {/* ageGroup */}
+                        <div>
+                            <label className="text-sm font-semibold mb-1 block">المرحلة العمرية (Age Group)</label>
+                            <select
+                                value={formData.ageGroup}
+                                onChange={(e) => setFormData({ ...formData, ageGroup: Number(e.target.value) })}
+                                className='w-full p-3 rounded-2xl border border-blue-600 outline-none text-black dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500'
+                            >
+                                <option value={1}>ابتدائي (1)</option>
+                                <option value={2}>إعدادي (2)</option>
+                                <option value={3}>ثانوي (3)</option>
+                            </select>
+                        </div>
+
+                        {/* gender */}
+                        <div>
+                            <label className="text-sm font-semibold mb-1 block">النوع (Gender)</label>
+                            <select
+                                value={formData.gender}
+                                onChange={(e) => setFormData({ ...formData, gender: Number(e.target.value) })}
+                                className='w-full p-3 rounded-2xl border border-blue-600 outline-none text-black dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500'
+                            >
+                                <option value={1}>ذكر (1)</option>
+                                <option value={2}>أنثى (2)</option>
+                            </select>
+                        </div>
+
+                        {/* زر الحفظ */}
                         <button 
                             type="submit" 
                             disabled={isSubmitting}
                             className='col-span-1 md:col-span-2 p-3.5 mt-2 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-800 transition-all disabled:bg-gray-500 cursor-pointer shadow-lg shadow-blue-600/30'
                         >
-                            {isSubmitting ? "جاري إرسال التغيرات للباك إند..." : "حفظ التغيرات في السيرفر"}
+                            {isSubmitting ? "جاري إرسال التعديلات للسيرفر..." : "حفظ التعديلات"}
                         </button>
                     </form>
                 </div>
             )}
 
-            {/* 👤 عرض البيانات التي تم جلبها من السيرفر */}
+            {/* 👤 عرض البروفايل */}
             <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 items-center p-8 rounded-3xl border shadow-xl ${theme === "light" ? "bg-white border-gray-200" : "bg-gray-900 border-gray-800"}`}>
-                
+
                 <div className="flex flex-col items-center justify-center col-span-1">
                     <div className="relative w-48 h-48 md:w-60 md:h-60 border-4 border-blue-600 rounded-full overflow-hidden shadow-lg mb-4">
                         <Image
@@ -1833,7 +1926,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                 </div>
 
                 <div className='col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                    
+
                     <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
                         <PersonFill className="text-blue-600 text-2xl flex-shrink-0" />
                         <div>
@@ -1859,10 +1952,18 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     </div>
 
                     <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
+                        <GenderAmbiguous className="text-blue-600 text-xl flex-shrink-0" />
+                        <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">النوع</p>
+                            <h4 className="text-lg font-bold">{userData?.gender === "Male" ? "ذكر" : "أنثى"}</h4>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
                         <HourglassSplit className="text-blue-600 text-xl flex-shrink-0" />
                         <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">العمر / المرحلة</p>
-                            <h4 className="text-lg font-bold">{userData?.age}</h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">المرحلة</p>
+                            <h4 className="text-lg font-bold">{userData?.ageGroup}</h4>
                         </div>
                     </div>
 
@@ -1885,7 +1986,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
                         <CalendarCheckFill className="text-blue-600 text-xl flex-shrink-0" />
                         <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">تاريخ الانضمام</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">تاريخ بداية الاشتراك</p>
                             <h4 className="text-lg font-bold">{userData?.createdAt}</h4>
                         </div>
                     </div>
@@ -1900,16 +2001,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
 
                     <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                         <button 
-                            onClick={() => {
-                                setFormData({
-                                    fullName: userData.fullName,
-                                    fullNumber: userData.fullNumber,
-                                    email: userData.email,
-                                    imageFile: null,
-                                    imagePreview: userData.image
-                                })
-                                setEdit(true)
-                            }} 
+                            onClick={openEditModal} 
                             className='flex items-center w-full p-3.5 rounded-2xl justify-center gap-2 bg-blue-600 hover:bg-blue-800 text-white font-semibold transition-all cursor-pointer shadow-md shadow-blue-600/20'
                         >
                             <PenFill /> تعديل البيانات الأساسية
