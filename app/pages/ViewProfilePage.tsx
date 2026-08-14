@@ -1876,9 +1876,10 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                                 onChange={(e) => setFormData({ ...formData, ageGroup: Number(e.target.value) })}
                                 className='w-full p-3 rounded-2xl border border-blue-600 outline-none text-black dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500'
                             >
-                                <option value={1}>ابتدائي (1)</option>
-                                <option value={2}>إعدادي (2)</option>
-                                <option value={3}>ثانوي (3)</option>
+                                <option value={0}>ابتدائي (0)</option>
+                                <option value={1}>إعدادي (1)</option>
+                                <option value={2}>ثانوي (2)</option>
+                                <option value={3}>شباب و خرجين(3)</option>
                             </select>
                         </div>
 
@@ -1890,8 +1891,8 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                                 onChange={(e) => setFormData({ ...formData, gender: Number(e.target.value) })}
                                 className='w-full p-3 rounded-2xl border border-blue-600 outline-none text-black dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500'
                             >
-                                <option value={1}>ذكر (1)</option>
-                                <option value={2}>أنثى (2)</option>
+                                <option value={0}>ذكر (1)</option>
+                                <option value={1}>أنثى (2)</option>
                             </select>
                         </div>
 

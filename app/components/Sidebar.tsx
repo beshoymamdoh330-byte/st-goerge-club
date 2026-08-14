@@ -8,14 +8,16 @@
 
 
 "use client"
-import React, { useSyncExternalStore } from 'react'
+import React, { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
     HouseDoorFill, 
     CreditCard2FrontFill, 
     Speedometer2,
-    BoxArrowRight 
+    BoxArrowRight,
+    List,
+    XLg
 } from 'react-bootstrap-icons'
 import { useFormContext, useThemeContext } from '../assets/contexts'
 
@@ -42,10 +44,22 @@ export default function Sidebar() {
     const router = useRouter()
     const { setForm } = useFormContext()
     const { theme, setTheme } = useThemeContext()
+    const [isMobileOpen, setIsMobileOpen] = useState(false)
 
     // 🚀 القراءة المباشرة مع التحديث الفوري والتتبع
     const userRole = useSyncExternalStore(subscribe, getRoleSnapshot, getServerSnapshot)
     const isDark = theme === "dark"
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+                setIsMobileOpen(false)
+            }
+        }
+
+        window.addEventListener("resize", handleResize)
+        return () => window.removeEventListener("resize", handleResize)
+    }, [])
 
     // 👑 التحقق من رتبة Admin
     const isAdmin = userRole ? userRole.toLowerCase().includes("admin") : false
@@ -72,84 +86,108 @@ export default function Sidebar() {
     ]
 
     return (
-        <aside className={`w-full p-3 shadow-sm z-50 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-r ${
-            isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-800"
-        }`}>
-            <div className="flex min-h-full flex-col justify-start gap-4">
-                {/* 🔹 اللوجو */}
-                <div className={`flex items-center gap-3 px-2 py-2 border-b ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-                    <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20 shrink-0">
-                        s
+        <>
+            <button
+                type="button"
+                aria-label="Open sidebar"
+                onClick={() => setIsMobileOpen((value) => !value)}
+                className={`fixed left-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl border shadow-lg transition-all duration-200 lg:hidden ${
+                    isDark ? "border-slate-700 bg-slate-900 text-slate-100" : "border-slate-200 bg-white text-slate-800"
+                }`}
+            >
+                {isMobileOpen ? <XLg className="text-lg" /> : <List className="text-xl" />}
+            </button>
+
+            {isMobileOpen && (
+                <button
+                    type="button"
+                    aria-label="Close sidebar overlay"
+                    onClick={() => setIsMobileOpen(false)}
+                    className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
+                />
+            )}
+
+            <aside className={`fixed left-0 top-0 z-50 h-screen w-[33vw] min-w-[220px] max-w-[280px] p-3 shadow-xl transition-transform duration-300 ease-in-out
+                lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:w-64 lg:min-w-0 lg:max-w-none lg:translate-x-0 lg:shadow-sm
+                ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+                ${isDark ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-200 text-slate-800"}`}>
+                <div className="flex min-h-full flex-col justify-start gap-4">
+                    {/* 🔹 اللوجو */}
+                    <div className={`flex items-center gap-3 px-2 py-2 border-b ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+                        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20 shrink-0">
+                            s
+                        </div>
+                        <span className="font-bold text-lg tracking-wide text-blue-600">
+                            St.George.Club
+                        </span>
                     </div>
-                    <span className="font-bold text-lg tracking-wide text-blue-600">
-                        St.George.Club
-                    </span>
-                </div>
 
-                {/* 🔹 أزرار التحكم العليا */}
-                <div className={`space-y-2 border-b pb-4 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-                    <button
-                        type="button"
-                        onClick={() => setTheme(isDark ? "light" : "dark")}
-                        className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
-                            isDark
-                                ? "bg-slate-800 text-yellow-300 hover:bg-slate-700"
-                                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                        }`}
-                    >
-                        <span>{isDark ? "☀️" : "🌙"}</span>
-                        <span>{isDark ? "Light mode" : "Dark mode"}</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={handleLogout}
-                        className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
-                            isDark ? "text-red-400 hover:bg-red-950/30" : "text-red-600 hover:bg-red-50"
-                        }`}
-                    >
-                        <BoxArrowRight className="text-lg" />
-                        <span>تسجيل الخروج</span>
-                    </button>
-                </div>
-
-                {/* 🔹 روابط التصفح */}
-                <nav className="flex flex-col gap-1.5">
-                    {/* 👑 زر لوحة التحكم (يظهر فقط للأدمن) */}
-                    {isAdmin && (
-                        <Link
-                            href="/dashboard"
-                            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
-                                pathname.startsWith('/dashboard')
-                                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
-                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+                    {/* 🔹 أزرار التحكم العليا */}
+                    <div className={`space-y-2 border-b pb-4 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
+                        <button
+                            type="button"
+                            onClick={() => setTheme(isDark ? "light" : "dark")}
+                            className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
+                                isDark
+                                    ? "bg-slate-800 text-yellow-300 hover:bg-slate-700"
+                                    : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                             }`}
                         >
-                            <Speedometer2 className="text-xl" />
-                            <span>لوحة التحكم (Admin)</span>
-                        </Link>
-                    )}
+                            <span>{isDark ? "☀️" : "🌙"}</span>
+                            <span>{isDark ? "Light mode" : "Dark mode"}</span>
+                        </button>
 
-                    {/* باقي روابط السايدبار (تظهر للجميع) */}
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href
-                        return (
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
+                                isDark ? "text-red-400 hover:bg-red-950/30" : "text-red-600 hover:bg-red-50"
+                            }`}
+                        >
+                            <BoxArrowRight className="text-lg" />
+                            <span>تسجيل الخروج</span>
+                        </button>
+                    </div>
+
+                    {/* 🔹 روابط التصفح */}
+                    <nav className="flex flex-col gap-1.5">
+                        {/* 👑 زر لوحة التحكم (يظهر فقط للأدمن) */}
+                        {isAdmin && (
                             <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-200 ${
-                                    isActive
-                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                                        : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                                href="/dashboard"
+                                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
+                                    pathname.startsWith('/dashboard')
+                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                        : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
                                 }`}
                             >
-                                {item.icon}
-                                <span>{item.label}</span>
+                                <Speedometer2 className="text-xl" />
+                                <span>لوحة التحكم (Admin)</span>
                             </Link>
-                        )
-                    })}
-                </nav>
-            </div>
-        </aside>
+                        )}
+
+                        {/* باقي روابط السايدبار (تظهر للجميع) */}
+                        {navItems.map((item) => {
+                            const isActive = pathname === item.href
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-200 ${
+                                        isActive
+                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                                            : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                                    }`}
+                                >
+                                    {item.icon}
+                                    <span>{item.label}</span>
+                                </Link>
+                            )
+                        })}
+                    </nav>
+                </div>
+            </aside>
+        </>
     )
 }
