@@ -4,28 +4,28 @@ import Image from "next/image";
 
 const About = () => {
   return (
-    <section className="relative grid grid-cols-1 items-center gap-10 overflow-hidden px-5 py-10 text-white md:px-20 lg:grid-cols-2">
+    <section id="about" className="relative grid grid-cols-1 items-center gap-8 overflow-hidden px-4 py-8 text-white sm:px-6 md:px-10 lg:grid-cols-2 lg:gap-10 lg:px-20 lg:py-10">
       {/* ================= IMAGES ================= */}
-      <div className="relative">
+      <div className="relative mx-auto w-full max-w-[520px]">
         {/* Main Image */}
-        <div className="group relative h-full overflow-hidden rounded-3xl">
+        <div className="group relative h-[260px] overflow-hidden rounded-3xl border-4 border-slate-900 bg-slate-900/40 shadow-2xl shadow-blue-950/30 sm:h-[340px] md:h-[420px] lg:h-[480px]">
           <Image
             src="/images/club-main.jpeg"
             alt="Club Members"
-            width={300}
-            height={300}
-            className="h-[480px] w-full object-cover transition duration-700 group-hover:scale-105"
+            width={900}
+            height={900}
+            className="h-full w-full object-contain transition duration-700 group-hover:scale-[1.02]"
           />
         </div>
 
         {/* Small Image */}
-        <div className="absolute -bottom-6 -right-6 hidden w-48 overflow-hidden rounded-3xl border-8 border-slate-950 shadow-2xl md:block">
+        <div className="absolute -bottom-4 -right-2 w-28 overflow-hidden rounded-2xl border-4 border-slate-950 bg-slate-900/50 shadow-2xl sm:w-32 md:-bottom-5 md:-right-3 md:w-40 lg:w-48">
           <Image
             src="/images/club-small.jpeg"
             alt="Club Activity"
-            width={300}
-            height={300}
-            className="h-52 w-full object-cover transition duration-500 hover:scale-110"
+            width={500}
+            height={500}
+            className="h-24 w-full object-contain transition duration-500 hover:scale-105 sm:h-28 md:h-36 lg:h-52"
           />
         </div>
       </div>

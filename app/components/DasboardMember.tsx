@@ -118,16 +118,16 @@ interface DasboardMemberProps {
 // 2️⃣ استلام { member } كـ Prop داخل المكون
 export default function DasboardMember({ member }: DasboardMemberProps) {
     const { theme } = useThemeContext()
+    const isDark = theme === "dark"
 
     const userImage = member?.image && member.image.trim() !== "" ? member.image : defaultImg
 
     return (
-        <div className={`flex items-center justify-between p-3 my-2 rounded-2xl border transition-all ${
-            theme === "light" 
-                ? "bg-white border-gray-300 text-black shadow-sm" 
-                : "bg-gray-700 border-gray-600 text-white"
+        <div className={`flex flex-col gap-3 rounded-2xl border p-3 transition-all duration-300 md:flex-row md:items-center md:justify-between ${
+            isDark
+                ? "border-slate-700 bg-slate-800/80 text-slate-100 shadow-[0_8px_20px_rgba(15,23,42,0.18)]"
+                : "border-slate-200 bg-slate-50 text-slate-800 shadow-[0_8px_20px_rgba(148,163,184,0.12)]"
         }`}>
-            {/* الجزء الأيسر: الصورة والاسم ورقم الهاتف */}
             <div className="flex items-center gap-3">
                 <Image
                     src={userImage}
@@ -135,32 +135,31 @@ export default function DasboardMember({ member }: DasboardMemberProps) {
                     width={50}
                     height={50}
                     unoptimized
-                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-600"
+                    className="h-12 w-12 rounded-full border-2 border-blue-600 object-cover"
                 />
 
                 <div>
-                    <h4 className="font-bold text-base md:text-lg capitalize">
+                    <h4 className="text-base font-bold capitalize md:text-lg">
                         {member?.fullName || "Unknown User"}
                     </h4>
-                    <p className="text-xs md:text-sm text-gray-500">
+                    <p className="text-xs text-slate-500 md:text-sm">
                         {member?.fullNumber || "No Phone Number"}
                     </p>
                 </div>
             </div>
 
-            {/* الجزء الأيمن: الحالة وزر التفاصيل */}
-            <div className="flex items-center gap-3">
-                <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${
+            <div className="flex items-center gap-3 self-end md:self-auto">
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                     member?.isActive 
-                        ? "bg-green-100 text-green-700" 
-                        : "bg-red-100 text-red-700"
+                        ? "bg-green-500/15 text-green-400" 
+                        : "bg-red-500/15 text-red-400"
                 }`}>
                     {member?.isActive ? "Active" : "Inactive"}
                 </span>
 
                 <Link
                     href={`/profile/${member?.id || ''}`} 
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-800 text-white text-xs md:text-sm rounded-xl transition-colors font-medium"
+                    className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 md:text-sm"
                 >
                     View
                 </Link>

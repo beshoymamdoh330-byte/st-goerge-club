@@ -245,10 +245,16 @@ export default function DashboardMembers() {
         )
     })
 
+    const isDark = theme === "dark"
+
     return (
-        <article className={`p-4 rounded-2xl mb-2.5 ${theme === "light" ? "text-black bg-gray-200" : "bg-gray-800 text-white"} border-r-4 border-b-4 border-blue-600`}>
-            <div className="flex justify-between items-start md:items-center flex-col md:flex-row mb-4 gap-2">
-                <h3 className='text-2xl capitalize text-blue-600 font-bold'>All Members ({filteredUsers.length})</h3>
+        <article className={`p-4 rounded-3xl mb-2.5 border backdrop-blur-sm ${
+            isDark
+                ? 'bg-slate-900/80 border-slate-800 text-slate-100 shadow-[0_18px_40px_rgba(15,23,42,0.32)]'
+                : 'bg-white/90 border-slate-200 text-slate-800 shadow-[0_18px_40px_rgba(148,163,184,0.18)]'
+        }`}>
+            <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h3 className='text-2xl font-bold capitalize text-blue-600'>All Members ({filteredUsers.length})</h3>
 
                 <div className="relative w-full md:w-1/2">
                     <input
@@ -256,33 +262,39 @@ export default function DashboardMembers() {
                         placeholder='ابحث بالاسم أو رقم الهاتف...'
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
-                        className='w-full p-3 border border-blue-600 rounded-2xl outline-none bg-transparent text-sm'
+                        className={`w-full rounded-2xl border p-3 text-sm outline-none transition-colors ${
+                            isDark
+                                ? 'border-slate-700 bg-slate-800 text-slate-100 placeholder:text-slate-400'
+                                : 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400'
+                        }`}
                     />
-                    <Search className="absolute top-1/2 right-3.5 -translate-y-1/2 text-blue-600" />
+                    <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-600" />
                 </div>
             </div>
 
             {isLoading ? (
-                <div className="text-center py-8 text-blue-600 font-bold animate-pulse">
+                <div className="py-8 text-center font-bold text-blue-600 animate-pulse">
                     جاري جلب بيانات الأعضاء...
                 </div>
             ) : errorMessage ? (
-                <div className="text-center py-6 text-red-500 font-semibold bg-red-100/10 rounded-xl p-3">
+                <div className="rounded-2xl bg-red-500/10 p-3 text-center font-semibold text-red-500">
                     {errorMessage}
                 </div>
             ) : filteredUsers.length > 0 ? (
-                filteredUsers.map((member) => (
-                    <DasboardMember key={member.id} member={member} />
-                ))
+                <div className="space-y-3">
+                    {filteredUsers.map((member) => (
+                        <DasboardMember key={member.id} member={member} />
+                    ))}
+                </div>
             ) : (
-                <div className="text-center py-6 text-gray-500 font-medium">
+                <div className="py-6 text-center text-sm text-slate-500">
                     لا يوجد أعضاء لعرضهم.
                 </div>
             )}
 
             <Link
                 onClick={() => setForm("signup")}
-                className='text-center mt-4 p-3 capitalize bg-blue-600 block w-full rounded-2xl hover:bg-blue-800 text-white transition-colors font-bold'
+                className='mt-4 block w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-center text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:translate-y-[-1px] hover:shadow-blue-500/40'
                 href={"/register"}
             >
                 Add Member
