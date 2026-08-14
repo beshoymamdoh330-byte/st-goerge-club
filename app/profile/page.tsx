@@ -1,5 +1,5 @@
 // app/profile/[id]/page.tsx
-import ViewProfilePage from '@/components/ViewProfilePage' // تعديل مسار المكون حسب مكان حفظه
+import ViewProfilePage from '../pages/ViewProfilePage' // تعديل مسار المكون حسب مكان حفظه
 
 interface PageProps {
     params: Promise<{ id: string }>
