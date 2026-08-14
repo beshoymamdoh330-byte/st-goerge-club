@@ -485,21 +485,26 @@ interface DecodedToken {
     [key: string]: unknown;
 }
 
-// Interface الخاص بـ API Response DTO
 interface UserResponseDto {
     id: string;
     fullName: string;
     phoneNumber: string;
     photoUrl: string;
-    nfcUrl?: string;
-    email?: string;
     isActive: boolean;
-    gender: string;
-    ageGroup: string;
     role?: string;
 }
 
-export default function ViewProfilePage({ member }: { member: memberType }) {
+// قيمة افتراضية لتفادي أخطاء undefined
+const defaultMember: memberType = {
+    id: "",
+    fullName: "",
+    fullNumber: "",
+    image: "",
+    role: "",
+    isActive: false
+}
+
+export default function ViewProfilePage({ member }: { member?: memberType }) {
     const { theme } = useThemeContext()
     const router = useRouter()
 
@@ -507,7 +512,9 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
     const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const [edit, setEdit] = useState<boolean>(false)
-    const [userData, setUserData] = useState<memberType>(member)
+    
+    // ✅ حلينا الخطأ هنا بإضافة (member || defaultMember)
+    const [userData, setUserData] = useState<memberType>(member || defaultMember)
 
     const [formData, setFormData] = useState<memberType>({
         id: userData?.id,
@@ -518,7 +525,6 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
         role: userData?.role
     })
 
-    // 🔒 التحقق وجلب بيانات المستخدم من الـ API
     useEffect(() => {
         queueMicrotask(async () => {
             const token = localStorage.getItem("token")
@@ -542,7 +548,6 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                 if (isAdmin) {
                     setIsAuthorized(true)
                     
-                    // 🌐 جلب بيانات المستخدم المحدثة والصورة من الـ API
                     if (member?.id) {
                         try {
                             const res = await fetch(`https://mahinproject.runasp.net/api/User/get-user/${member.id}`, {
@@ -559,7 +564,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                                     fullName: data.fullName,
                                     fullNumber: data.phoneNumber,
                                     isActive: data.isActive,
-                                    image: data.photoUrl || "", // 👈 ربط صورة المستخدم المرفوعة
+                                    image: data.photoUrl || "",
                                     role: data.role || ""
                                 }
 
@@ -585,13 +590,8 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
 
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
-
-        try {
-            setUserData(formData)
-            setEdit(false)
-        } catch (error) {
-            console.error("Error updating user data:", error)
-        }
+        setUserData(formData)
+        setEdit(false)
     }
 
     if (isLoading || !isAuthorized) {
@@ -604,10 +604,8 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
 
     return (
         <main className={`w-full bg-fixed py-5 pt-25 px-5 md:px-20 min-h-screen ${theme === "light" ? "light-mode" : "dark-mode"}`}>
-            
             {/* Edit Form */}
             <div className={`items-center ${edit ? "grid" : "hidden"} gap-2.5 p-5 mb-10 ${theme === "light" ? "bg-gray-200 text-black" : "bg-gray-800 text-white"} rounded-3xl border-b-4 border-r-4 border-blue-600 grid-cols-1 md:grid-cols-2 relative`}>
-                
                 <button 
                     type="button"
                     onClick={() => setEdit(false)} 
@@ -621,7 +619,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                         <label className="text-sm font-semibold mb-1 block">Full Name</label>
                         <input
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            className='w-full p-3 rounded-2xl border border-blue-600 focus:bg-blue-500 focus:text-white outline-none transition-all'
+                            className='w-full p-3 rounded-2xl border border-blue-600 outline-none'
                             type="text"
                             value={formData.fullName || ''}
                             required
@@ -632,7 +630,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
                         <label className="text-sm font-semibold mb-1 block">Phone Number</label>
                         <input
                             onChange={(e) => setFormData({ ...formData, fullNumber: e.target.value })}
-                            className='w-full p-3 rounded-2xl border border-blue-600 focus:bg-blue-500 focus:text-white outline-none transition-all'
+                            className='w-full p-3 rounded-2xl border border-blue-600 outline-none'
                             type="text"
                             value={formData.fullNumber || ''}
                             required
@@ -641,7 +639,7 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
 
                     <button 
                         type="submit" 
-                        className='col-span-1 md:col-span-2 p-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-800 transition-colors disabled:bg-gray-400 cursor-pointer mt-2'
+                        className='col-span-1 md:col-span-2 p-3 rounded-2xl bg-blue-600 text-white font-semibold hover:bg-blue-800 transition-colors cursor-pointer mt-2'
                     >
                         Save Changes
                     </button>
@@ -651,13 +649,12 @@ export default function ViewProfilePage({ member }: { member: memberType }) {
             {/* Profile Display */}
             <div className='grid grid-cols-1 items-center md:grid-cols-2 gap-6'>
                 <div className="flex justify-center">
-                    {/* 📸 عرض صورة البروفايل الخاصة بالمستخدم المرفوعة من الـ API */}
                     <Image
                         src={userData?.image && userData.image.trim() !== "" ? userData.image : img}
                         alt='Member Profile'
                         width={300}
                         height={300}
-                        unoptimized // 👈 تسمح برفع الصور الخارجية/Base64 بدون مشاكل Next.js Domain
+                        unoptimized
                         className='w-64 h-64 md:w-80 md:h-80 border-4 border-blue-600 rounded-full object-cover'
                     />
                 </div>

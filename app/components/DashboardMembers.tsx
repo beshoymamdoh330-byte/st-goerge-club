@@ -12,7 +12,7 @@ import { memberType } from '../assets/assets'
 import { useThemeContext } from '../assets/contexts'
 import defaultImg from "../../public/images/st-george-killing-dragon.png" // الصورة الافتراضية
 
-export default function DasboardMember({ member }: { member: memberType }) {
+export default function DasboardMember() {
     const { theme } = useThemeContext()
 
     return (
