@@ -81,9 +81,82 @@ main {
   background: transparent;
 }
 
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg) scale(1);
+    filter: drop-shadow(0 14px 18px rgba(59, 130, 246, 0.18));
+  }
+  50% {
+    transform: translateY(-18px) rotateX(4deg) rotateY(-4deg) scale(1.01);
+    filter: drop-shadow(0 22px 26px rgba(59, 130, 246, 0.32));
+  }
+}
+
+@keyframes flyImage {
+  0% {
+    transform: rotateX(8deg) rotateY(-10deg) rotateZ(-2deg) translate3d(0, 0, 0);
+  }
+  20% {
+    transform: rotateX(12deg) rotateY(-18deg) rotateZ(-5deg) translate3d(-8px, -10px, 12px);
+  }
+  50% {
+    transform: rotateX(15deg) rotateY(-22deg) rotateZ(-7deg) translate3d(-16px, -22px, 26px);
+  }
+  80% {
+    transform: rotateX(12deg) rotateY(-18deg) rotateZ(-5deg) translate3d(-8px, -12px, 12px);
+  }
+  100% {
+    transform: rotateX(8deg) rotateY(-10deg) rotateZ(-2deg) translate3d(0, 0, 0);
+  }
+}
+
 /* .home{
     background-image: url(../public/images/image.png);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
 } */
+
+
+
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100px);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0px);
+  }
+}
+
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+
+.animate-float {
+  animation: float 3.5s ease-in-out infinite;
+}

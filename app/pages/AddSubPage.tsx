@@ -38,8 +38,8 @@ export default function AddSubPage() {
                 <input  
                     value={sub.name}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSub({ ...sub, name: e.target.value })}
-                    placeholder='name'
-                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-black' 
+                    placeholder='لاسم'
+                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-white' 
                     type="text" 
                     required
                 />
@@ -47,8 +47,8 @@ export default function AddSubPage() {
                 <input 
                     value={sub.price > 0 ? sub.price : ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSub({ ...sub, price: Number(e.target.value) })}
-                    placeholder='price'
-                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-black' 
+                    placeholder='السعر'
+                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-white' 
                     type="number" 
                     required
                 />
@@ -56,8 +56,8 @@ export default function AddSubPage() {
                 <input 
                     value={sub.durationInDays > 0 ? sub.durationInDays : ""}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSub({ ...sub, durationInDays: Number(e.target.value) })}
-                    placeholder='number of days'
-                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-black' 
+                    placeholder='عدد لايام'
+                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-white' 
                     type="number" 
                     required
                 />
@@ -65,11 +65,13 @@ export default function AddSubPage() {
                 <select 
                     value={sub.targetAgeGroup}
                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSub({ ...sub, targetAgeGroup: Number(e.target.value) })}
-                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-black' 
+                    className='focus:bg-blue-400 w-full mb-5 p-3 border border-blue-600 rounded-2xl text-white' 
                 >
-                    <option value={1}>prep</option>
-                    <option value={2}>prime</option>
-                    <option value={3}>second</option>
+                    <option value={0}>ابتدائي </option>
+                    <option value={1}>اعدادي</option>
+                    <option value={2}>ثانوي</option>
+                    <option value={3}>شباب و خرجين</option>
+                    <option value={4}>جميع</option>
                 </select>
 
                 <button  onClick={handleAddSub}  className='text-center p-3 capitalize bg-blue-600 text-white inline-block w-full rounded-2xl hover:bg-blue-800 transition-colors'>

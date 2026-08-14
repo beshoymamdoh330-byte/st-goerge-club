@@ -14,7 +14,7 @@ const About = () => {
             alt="Club Members"
             width={900}
             height={900}
-            className="h-full w-full object-contain transition duration-700 group-hover:scale-[1.02]"
+            className="h-full w-full  transition duration-700 group-hover:scale-[1.02]"
           />
         </div>
 
@@ -25,7 +25,7 @@ const About = () => {
             alt="Club Activity"
             width={500}
             height={500}
-            className="h-24 w-full object-contain transition duration-500 hover:scale-105 sm:h-28 md:h-36 lg:h-52"
+            className="h-24 w-full h-full transition duration-500 hover:scale-105 sm:h-28 md:h-36 lg:h-52"
           />
         </div>
       </div>

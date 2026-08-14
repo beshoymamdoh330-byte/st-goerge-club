@@ -4,19 +4,22 @@ import { subType } from '../assets/assets'
 export default function DashboradSup({sub}:{sub:subType}) {
     const getStages = ()=>{
         if(sub.targetAgeGroup === 0){
-            return "abt"
+            return "ابتدائي"
         }
         if(sub.targetAgeGroup === 1){
-            return "add"
+            return "اعدادي"
         }
         if(sub.targetAgeGroup === 2){
-            return "thn"
+            return "ثانوي"
         }
         if(sub.targetAgeGroup === 3){
-            return "gra"
+            return "شباب و خرجين"
         }
         if(sub.targetAgeGroup === 4){
-            return "gra"
+            return "الجميع"
+        }
+        if(sub.targetAgeGroup === 5){
+            return "الجميع"
         }
     }
 return (
