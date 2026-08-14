@@ -1,3 +1,6 @@
+// 
+
+
 "use client"
 import React, { useSyncExternalStore } from 'react'
 import Link from 'next/link'
@@ -5,7 +8,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import { 
     HouseDoorFill, 
     CreditCard2FrontFill, 
-    PersonCircle, 
     Speedometer2,
     BoxArrowRight 
 } from 'react-bootstrap-icons'
@@ -42,9 +44,11 @@ export default function Sidebar() {
     // 👑 التحقق من رتبة Admin
     const isAdmin = userRole ? userRole.toLowerCase().includes("admin") : false
 
-    const handleLogin = () => {
-        if (setForm) setForm("login")
-        router.push("/login")
+    // 🛑 الشروط المطلوبة لإخفاء السايدبار:
+    // 1. إذا كنا في الصفحة الرئيسية '/'
+    // 2. أو إذا كان المستخدم ليس أدمن (!isAdmin)
+    if (pathname === '/' || !isAdmin) {
+        return null
     }
 
     const handleLogout = () => {
@@ -74,25 +78,12 @@ export default function Sidebar() {
                         s
                     </div>
                     <span className="font-bold text-lg tracking-wide text-blue-600">
-                        St.Goerge.CLub
+                        St.George.Club
                     </span>
                 </div>
 
                 {/* 🔹 أزرار التحكم العليا */}
                 <div className={`space-y-2 border-b pb-4 ${isDark ? "border-slate-800" : "border-slate-200"}`}>
-                    {!userRole && (
-                        <button
-                            type="button"
-                            onClick={handleLogin}
-                            className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
-                                isDark ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                            }`}
-                        >
-                            <PersonCircle className="text-lg" />
-                            <span>تسجيل الدخول</span>
-                        </button>
-                    )}
-
                     <button
                         type="button"
                         onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -106,36 +97,32 @@ export default function Sidebar() {
                         <span>{isDark ? "Light mode" : "Dark mode"}</span>
                     </button>
 
-                    {userRole && (
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
-                                isDark ? "text-red-400 hover:bg-red-950/30" : "text-red-600 hover:bg-red-50"
-                            }`}
-                        >
-                            <BoxArrowRight className="text-lg" />
-                            <span>تسجيل الخروج</span>
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className={`flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[14px] font-semibold transition-all duration-200 ${
+                            isDark ? "text-red-400 hover:bg-red-950/30" : "text-red-600 hover:bg-red-50"
+                        }`}
+                    >
+                        <BoxArrowRight className="text-lg" />
+                        <span>تسجيل الخروج</span>
+                    </button>
                 </div>
 
                 {/* 🔹 روابط التصفح */}
                 <nav className="flex flex-col gap-1.5">
-                    {/* 👑 زر لوحة التحكم (يظهر للأدمن فقط) */}
-                    {isAdmin && (
-                        <Link
-                            href="/dashboard"
-                            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
-                                pathname.startsWith('/dashboard')
-                                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
-                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
-                            }`}
-                        >
-                            <Speedometer2 className="text-xl" />
-                            <span>لوحة التحكم (Admin)</span>
-                        </Link>
-                    )}
+                    {/* 👑 زر لوحة التحكم */}
+                    <Link
+                        href="/dashboard"
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
+                            pathname.startsWith('/dashboard')
+                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+                        }`}
+                    >
+                        <Speedometer2 className="text-xl" />
+                        <span>لوحة التحكم (Admin)</span>
+                    </Link>
 
                     {/* باقي القائمة */}
                     {navItems.map((item) => {
@@ -157,7 +144,6 @@ export default function Sidebar() {
                     })}
                 </nav>
             </div>
-
         </aside>
     )
 }
