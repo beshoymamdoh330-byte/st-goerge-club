@@ -357,11 +357,11 @@ export default function SignUp() {
                         value={user.type}
                         onChange={(e) => setUser({ ...user, type: e.target.value })}
                     >
-                        <option value="1">prep</option> 
-                        <option value="2">prime</option> 
-                        <option value="3">second</option> 
-                        <option value="4">uni</option> 
-                        <option value="5">grads</option> 
+                        <option value="0">prep</option> 
+                        <option value="1">prime</option> 
+                        <option value="2">second</option> 
+                        <option value="3">uni & grads</option> 
+                        {/* <option value="4">grads</option>  */}
                     </select>
                 </div>
                 
@@ -383,8 +383,8 @@ export default function SignUp() {
                                 onChange={(e) => setUser({ ...user, gender: e.target.value })} 
                                 type="radio" 
                                 id="male" 
-                                value="1" 
-                                checked={user.gender === "1"}
+                                value="0" 
+                                checked={user.gender === "0"}
                             />
                         </div>
                         <div className="flex items-center gap-2.5">
@@ -393,8 +393,8 @@ export default function SignUp() {
                                 onChange={(e) => setUser({ ...user, gender: e.target.value })} 
                                 type="radio" 
                                 id="female" 
-                                value="2" 
-                                checked={user.gender === "2"}
+                                value="1" 
+                                checked={user.gender === "1"}
                             />
                         </div>
                     </div>

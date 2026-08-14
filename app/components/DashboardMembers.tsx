@@ -1,76 +1,67 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+// 
+
+
+
+
+
+
 "use client"
+import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { memberType } from '../assets/assets'
-import DasboardMember from './DasboardMember'
-import { useFormContext, useThemeContext } from '../assets/contexts'
-import { Search } from 'react-bootstrap-icons'
+import { useThemeContext } from '../assets/contexts'
+import defaultImg from "../../public/images/st-george-killing-dragon.png" // الصورة الافتراضية
 
-export default function DashboardMembers() {
-    const { setForm } = useFormContext()
-    const [searchValue, setSearchValue] = useState<string>("")
+export default function DasboardMember({ member }: { member: memberType }) {
     const { theme } = useThemeContext()
-    const [allUsers, setAllUsers] = useState<memberType[]>([])
-
-    const getAllUsers = async () => {
-        try{
-        const response = await fetch("https://mahinproject.runasp.net/api/User/get-all-user")
-        const results = await response.json()
-        setAllUsers(results)
-        console.log(results)
-        }catch(err){
-            console.error(err)
-        }
-    }
-
-    useEffect(() => {
-        getAllUsers()
-    }, [])
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value)
-    }
-
-    const usersMap = allUsers.map((user) => {
-        // تحويل بيانات المستخدم إلى نوع memberType لتمريرها بشكل صحيح
-        const memberData: memberType = {
-            id: user.id,
-            fullName: user.fullName ?? "",
-            fullNumber: user.fullNumber ?? "",
-            image: user.image,
-            role:user.role,
-            isActive: user.isActive ?? false // قيمة افتراضية في حال عدم وجودها
-        }
-
-        return (
-            <DasboardMember key={user.id} member={memberData} />
-        )
-    })
 
     return (
-        <article className={`p-3 rounded-2xl mb-2.5 ${theme === "light" ? "text-black bg-gray-200" : "bg-gray-800 text-white"} border-r-4 border-b-4 border-blue-600`}>
-            <div className="flex justify-between items-start md:items-center flex-col md:flex-row">
-                <h3 className='mb-2.5 text-2xl capitalize text-blue-600'>all members</h3>
-                <div className="relative mb-5 w-full md:w-1/2">
-                    <input 
-                        type="text"
-                        placeholder='search sub'
-                        value={searchValue} 
-                        onChange={handleChange}
-                        className='focus:bg-blue-400 w-full p-3 border border-blue-600 rounded-2xl' 
-                    />
-                    <Search className={`absolute top-1/2 right-2.5 -translate-y-1/2 ${searchValue !== "" ? "block" : "hidden"}`} />
+        <div className={`flex items-center justify-between p-3 my-2 rounded-2xl border transition-all ${
+            theme === "light" 
+                ? "bg-white border-gray-300 text-black shadow-sm" 
+                : "bg-gray-700 border-gray-600 text-white"
+        }`}>
+            {/* الجزء الأيسر: الصورة والاسم ورقم الهاتف */}
+            <div className="flex items-center gap-3">
+                {/* 📸 صورة البروفايل */}
+                <Image
+                    src={member.image && member.image.trim() !== "" ? member.image : defaultImg}
+                    alt={member.fullName || "Member Profile"}
+                    width={50}
+                    height={50}
+                    unoptimized // يسمح بتحميل الصور الخارجية من سيرفر الـ API
+                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-600"
+                />
+
+                <div>
+                    <h4 className="font-bold text-base md:text-lg capitalize">
+                        {member.fullName || "Unknown User"}
+                    </h4>
+                    <p className="text-xs md:text-sm text-gray-500">
+                        {member.fullNumber || "No Phone Number"}
+                    </p>
                 </div>
             </div>
-            {usersMap}
-            <Link 
-                onClick={() => { setForm("signup") }} 
-                className='text-center mt-2.5 p-2 capitalize bg-blue-600 inline-block w-full rounded-2xl hover:bg-blue-800 text-white' 
-                href={"/register"}
-            >
-                add member
-            </Link>
-        </article>
+
+            {/* الجزء الأيمن: الحالة وزر التفاصيل */}
+            <div className="flex items-center gap-3">
+                {/* شارة حالة الحساب */}
+                <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${
+                    member.isActive 
+                        ? "bg-green-100 text-green-700" 
+                        : "bg-red-100 text-red-700"
+                }`}>
+                    {member.isActive ? "Active" : "Inactive"}
+                </span>
+
+                {/* زر الانتقال لصفحة البروفايل */}
+                <Link
+                    href={`/profile/${member.id}`} 
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-800 text-white text-xs md:text-sm rounded-xl transition-colors font-medium"
+                >
+                    View
+                </Link>
+            </div>
+        </div>
     )
 }
