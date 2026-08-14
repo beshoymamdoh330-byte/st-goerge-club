@@ -606,7 +606,7 @@ export default function SignUp() {
             
             <form className="grid grid-cols-1 md:grid-cols-2 gap-2" onSubmit={handleRegister}>
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none' 
                     type="text" 
                     placeholder='full name / username...'
                     value={user.userName}
@@ -615,7 +615,7 @@ export default function SignUp() {
                 />
 
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none' 
                     type="text" 
                     placeholder='phone number...'
                     value={user.number}
@@ -624,7 +624,7 @@ export default function SignUp() {
                 />
 
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700' 
                     type="file" 
                     accept="image/*"
                     onChange={(e) => {
@@ -641,19 +641,20 @@ export default function SignUp() {
                 <div>
                     <label className="w-full mb-1 block text-sm font-semibold">Choose age group / stage:</label>
                     <select 
-                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none' 
+                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none' 
                         value={user.type}
                         onChange={(e) => setUser({ ...user, type: e.target.value })}
                     >
-                        <option value="0">prep</option> 
-                        <option value="1">prime</option> 
-                        <option value="2">second</option> 
-                        <option value="3">uni & grads</option> 
+                        <option value="0">ابتدائي</option> 
+                        <option value="1">اعدادي</option> 
+                        <option value="2">ثانوي </option> 
+                        <option value="3">جامعه و خرجين</option> 
+                        <option value="3">غير ذالك</option> 
                     </select>
                 </div>
                 
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none' 
                     type="email" 
                     placeholder='email address...'
                     value={user.email}
@@ -691,7 +692,7 @@ export default function SignUp() {
 
                 <div className="relative">
                     <input 
-                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none'
+                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none'
                         type={showPassword ? "text" : "password"} 
                         placeholder='password...'
                         value={user.password}
@@ -709,7 +710,7 @@ export default function SignUp() {
 
                 <div className="relative">
                     <input 
-                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 text-black dark:text-white dark:bg-gray-700 outline-none'
+                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 outline-none'
                         type={showConfirmPassword ? "text" : "password"} 
                         placeholder='confirm password...'
                         value={user.confirmPassword}

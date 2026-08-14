@@ -1,6 +1,12 @@
 // 
 
 
+
+
+
+
+
+
 "use client"
 import React, { useSyncExternalStore } from 'react'
 import Link from 'next/link'
@@ -44,10 +50,8 @@ export default function Sidebar() {
     // 👑 التحقق من رتبة Admin
     const isAdmin = userRole ? userRole.toLowerCase().includes("admin") : false
 
-    // 🛑 الشروط المطلوبة لإخفاء السايدبار:
-    // 1. إذا كنا في الصفحة الرئيسية '/'
-    // 2. أو إذا كان المستخدم ليس أدمن (!isAdmin)
-    if (pathname === '/' || !isAdmin) {
+    // 🛑 الشرط الجديد: إخفاء السايدبار فقط في الصفحة الرئيسية '/'
+    if (pathname === '/') {
         return null
     }
 
@@ -111,20 +115,22 @@ export default function Sidebar() {
 
                 {/* 🔹 روابط التصفح */}
                 <nav className="flex flex-col gap-1.5">
-                    {/* 👑 زر لوحة التحكم */}
-                    <Link
-                        href="/dashboard"
-                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
-                            pathname.startsWith('/dashboard')
-                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
-                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
-                        }`}
-                    >
-                        <Speedometer2 className="text-xl" />
-                        <span>لوحة التحكم (Admin)</span>
-                    </Link>
+                    {/* 👑 زر لوحة التحكم (يظهر فقط للأدمن) */}
+                    {isAdmin && (
+                        <Link
+                            href="/dashboard"
+                            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
+                                pathname.startsWith('/dashboard')
+                                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                    : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+                            }`}
+                        >
+                            <Speedometer2 className="text-xl" />
+                            <span>لوحة التحكم (Admin)</span>
+                        </Link>
+                    )}
 
-                    {/* باقي القائمة */}
+                    {/* باقي روابط السايدبار (تظهر للجميع) */}
                     {navItems.map((item) => {
                         const isActive = pathname === item.href
                         return (

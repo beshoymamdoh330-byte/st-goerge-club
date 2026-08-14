@@ -224,7 +224,7 @@ export default function Login() {
 
             <form onSubmit={HandleLogIn}>
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 dark:text-black outline-none transition-all' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 dark:text-white outline-none transition-all' 
                     type="text" 
                     placeholder='phone...'
                     value={user.phoneNumber}
@@ -234,7 +234,7 @@ export default function Login() {
                 
                 <div className="relative">
                     <input 
-                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-200 dark:text-black outline-none transition-all'
+                        className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 dark:text-white outline-none transition-all'
                         type={type} 
                         placeholder='password...'
                         value={user.password}
