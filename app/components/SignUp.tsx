@@ -548,13 +548,13 @@ export default function SignUp() {
             const formData = new FormData()
 
             // إرسال البيانات بأسماء الحقول المطلوبة بالـ PascalCase
-            formData.append("Email", user.email.trim())
-            formData.append("PhoneNumber", (user.number || user.fullNumber).trim())
-            formData.append("Password", user.password)
-            formData.append("ConfirmPassword", user.confirmPassword)
-            formData.append("FullName", (user.fullName || user.userName).trim())
-            formData.append("Gender", user.gender || "1")
-            formData.append("AgeGroup", user.type || "1")
+            formData.append("Email", user.email || "");
+            formData.append("PhoneNumber", user.number || user.fullNumber || "");
+            formData.append("Password", user.password || "");
+            formData.append("ConfirmPassword", user.confirmPassword || "");
+            formData.append("FullName", user.fullName || user.userName || "");
+            formData.append("Gender", user.gender || "1");
+            formData.append("AgeGroup", user.type || "1");
 
             // معالجة ملف الصورة لمنع Null Reference Exception في السيرفر
             const photoFile = selectedFile || (await createFallbackImageFile())
@@ -583,7 +583,7 @@ export default function SignUp() {
                     try {
                         const loginFormData = new FormData()
                         loginFormData.append("PhoneNumber", (user.number || user.fullNumber).trim())
-                        loginFormData.append("Password", user.password)
+                        loginFormData.append("Password", user.password || "")
 
                         const loginRes = await fetch("https://mahinproject.runasp.net/api/Auth/login", {
                             method: 'POST',
@@ -778,4 +778,3 @@ export default function SignUp() {
 }
 
 
-// vjrhg
