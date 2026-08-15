@@ -468,10 +468,34 @@ import { useFormContext, useThemeContext, useUsersContext } from "../assets/cont
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+// 🖼️ دالة مساعدة لإنشاء صورة افتراضية في حالة عدم اختيار المستخدم لصورة
+// لمنع حدوث استثناء (Value cannot be null - Parameter 'path1') على السيرفر
+const createFallbackImageFile = (): Promise<File> => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement("canvas")
+        canvas.width = 100
+        canvas.height = 100
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+            ctx.fillStyle = "#3b82f6"
+            ctx.fillRect(0, 0, 100, 100)
+        }
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const file = new File([blob], "default-avatar.png", { type: "image/png" })
+                resolve(file)
+            }
+        }, "image/png")
+    })
+}
+
 export default function SignUp() {
     const [showPassword, setShowPassword] = useState<boolean>(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
+    
+    // 📸 الاحتفاظ بالملف المرفوع
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
     const { setForm } = useFormContext()
     const { theme } = useThemeContext()
@@ -481,13 +505,13 @@ export default function SignUp() {
     const [user, setUser] = useState<SignupUser>({
         id: "",
         confirmPassword: "",
-        gender: "1",
+        gender: "1", // القيمة الافتراضية
         userName: "",
         fullName: "",
         number: "",
         fullNumber: "",
         image: "",
-        type: "1",
+        type: "1", // القيمة الافتراضية للمرحلة
         email: "",
         password: ""
     })
@@ -506,9 +530,10 @@ export default function SignUp() {
             email: "",
             password: ""
         })
+        setSelectedFile(null)
     }
 
-    // 🌐 دالة التسجيل بتنسيق Form URL Encoded مع المعالجة الكاملة للـ Types
+    // 🌐 دالة معالجة التسجيل
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -519,45 +544,50 @@ export default function SignUp() {
 
         setLoading(true)
 
-        // 1️⃣ إعداد البيانات مع حماية TypeScript ضد قيمة undefined باستعمال || ""
-        const bodyData = new URLSearchParams()
-        bodyData.append("Email", user.email || "")
-        bodyData.append("PhoneNumber", user.number || user.fullNumber || "")
-        bodyData.append("Password", user.password || "")
-        bodyData.append("ConfirmPassword", user.confirmPassword || "")
-        bodyData.append("FullName", user.fullName || user.userName || "")
-        bodyData.append("Gender", user.gender || "1")
-        bodyData.append("PhotoUrl", user.image || "")
-        bodyData.append("AgeGroup", user.type || "1")
-
         try {
+            const formData = new FormData()
+
+            // إرسال البيانات بأسماء الحقول المطلوبة بالـ PascalCase
+            formData.append("Email", user.email.trim())
+            formData.append("PhoneNumber", (user.number || user.fullNumber).trim())
+            formData.append("Password", user.password)
+            formData.append("ConfirmPassword", user.confirmPassword)
+            formData.append("FullName", (user.fullName || user.userName).trim())
+            formData.append("Gender", user.gender || "1")
+            formData.append("AgeGroup", user.type || "1")
+
+            // معالجة ملف الصورة لمنع Null Reference Exception في السيرفر
+            const photoFile = selectedFile || (await createFallbackImageFile())
+            formData.append("PhotoUrl", photoFile)
+
             const res = await fetch("https://mahinproject.runasp.net/api/Auth/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: bodyData.toString()
+                body: formData
+                // تنبيه: لا نضع 'Content-Type' header مع FormData، المتصفح يحدده تلقائياً
             })
 
-            const data = await res.json()
+            const textResponse = await res.text()
+            let data: any = {}
+            try {
+                data = JSON.parse(textResponse)
+            } catch {
+                console.log("Response Raw Text:", textResponse)
+            }
 
             if (res.ok) {
                 let token = data.token
                 let role = data.role || (Array.isArray(data.roles) && data.roles[0])
 
-                // 🔄 تسجيل الدخول تلقائياً إذا لم يُرجع التسجيل توكن مباشرة
+                // 🔄 في حال عدم إرجاع التوكن مباشرة من تسجيل الحساب، نُنفذ تسجيل دخول تلقائي
                 if (!token) {
                     try {
-                        const loginBody = new URLSearchParams()
-                        loginBody.append("PhoneNumber", user.number || user.fullNumber || "")
-                        loginBody.append("Password", user.password || "")
+                        const loginFormData = new FormData()
+                        loginFormData.append("PhoneNumber", (user.number || user.fullNumber).trim())
+                        loginFormData.append("Password", user.password)
 
                         const loginRes = await fetch("https://mahinproject.runasp.net/api/Auth/login", {
                             method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/x-www-form-urlencoded' 
-                            },
-                            body: loginBody.toString()
+                            body: loginFormData
                         })
 
                         const loginData = await loginRes.json()
@@ -570,11 +600,12 @@ export default function SignUp() {
                     }
                 }
 
+                // 🔑 حفظ بيانات الجلسة والتوجيه
                 if (token) {
                     localStorage.setItem("token", token)
                     if (role) localStorage.setItem("userRole", role)
                     
-                    setUsers([...users, user])
+                    if (setUsers) setUsers([...users, user])
                     clearInputs()
                     router.push('/welcome')
                 } else {
@@ -582,7 +613,7 @@ export default function SignUp() {
                     router.push('/login')
                 }
             } else {
-                console.error("Validation Errors from Server:", data)
+                console.error("Server Response Error:", data)
 
                 if (data.errors) {
                     const errorMessages = Object.entries(data.errors)
@@ -590,11 +621,11 @@ export default function SignUp() {
                         .join("\n")
                     alert(`خطأ في البيانات المدخلة:\n${errorMessages}`)
                 } else {
-                    alert(data.message || data.title || "حدث خطأ أثناء إنشاء الحساب.")
+                    alert(data.error || data.message || data.title || "حدث خطأ أثناء معالجة البيانات على السيرفر.")
                 }
             }
         } catch (error) {
-            console.error("Registration Error:", error)
+            console.error("Registration Request Error:", error)
             alert("حدث خطأ في الاتصال بالخادم!")
         } finally {
             setLoading(false)
@@ -625,17 +656,14 @@ export default function SignUp() {
                 />
 
                 <input 
-                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700' 
+                    className='p-3 text-[18px] border rounded-2xl border-blue-600 w-full mb-2 focus:bg-blue-800 text-black dark:text-white dark:bg-gray-700 cursor-pointer' 
                     type="file" 
                     accept="image/*"
                     onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                            setUser({ ...user, image: reader.result as string });
-                        };
-                        reader.readAsDataURL(file);
+                        const file = e.target.files?.[0]
+                        if (file) {
+                            setSelectedFile(file)
+                        }
                     }}
                 />
 
