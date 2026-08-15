@@ -20,6 +20,8 @@ import {
     XLg
 } from 'react-bootstrap-icons'
 import { useFormContext, useThemeContext } from '../assets/contexts'
+import Image from 'next/image'
+import st from '@/public/images/st.jpeg'
 
 // 1️⃣ متتبع أحداث الـ Auth والـ Storage
 const subscribe = (callback: () => void) => {
@@ -115,7 +117,13 @@ export default function Sidebar() {
                     {/* 🔹 اللوجو */}
                     <div className={`flex items-center gap-3 px-2 py-2 border-b ${isDark ? "border-slate-800" : "border-slate-200"}`}>
                         <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-500/20 shrink-0">
-                            s
+                            <Image 
+                                src={st} // أو ضع المسار المباشر "/images/home.png"
+                                alt="St. George Club Logo" 
+                                width={36} 
+                                height={36} 
+                                className="w-full h-full object-cover"
+                            />
                         </div>
                         <span className="font-bold text-lg tracking-wide text-blue-600">
                             St.George.Club

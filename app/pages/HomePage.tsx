@@ -7,7 +7,7 @@ import { useFormContext, useThemeContext } from '../assets/contexts'
 import HeroVerseSection from '../components/HeroVerseSection'
 import HeroSection from '../components/HeroSection'
 
-import logoImg from '@/public/images/home.png'
+import logoImg from '@/public/images/st.jpeg'
 
 export default function HomePage() {
     const { setForm } = useFormContext()

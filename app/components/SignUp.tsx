@@ -481,13 +481,13 @@ export default function SignUp() {
     const [user, setUser] = useState<SignupUser>({
         id: "",
         confirmPassword: "",
-        gender: "1", // القيمة الافتراضية 1
+        gender: "1",
         userName: "",
         fullName: "",
         number: "",
         fullNumber: "",
         image: "",
-        type: "1", // القيمة الافتراضية 1
+        type: "1",
         email: "",
         password: ""
     })
@@ -508,7 +508,7 @@ export default function SignUp() {
         })
     }
 
-    // 🌐 دالة التسجيل + التوجيه التلقائي لصفحة الـ Welcome
+    // 🌐 دالة التسجيل بتنسيق Form URL Encoded مع المعالجة الكاملة للـ Types
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -519,24 +519,24 @@ export default function SignUp() {
 
         setLoading(true)
 
-        const payload = {
-            email: user.email,
-            phoneNumber: user.number || user.fullNumber,
-            password: user.password,
-            confirmPassword: user.confirmPassword,
-            fullName: user.fullName || user.userName,
-            gender: Number(user.gender),
-            photoUrl: user.image || "",
-            ageGroup: Number(user.type)
-        }
+        // 1️⃣ إعداد البيانات مع حماية TypeScript ضد قيمة undefined باستعمال || ""
+        const bodyData = new URLSearchParams()
+        bodyData.append("Email", user.email || "")
+        bodyData.append("PhoneNumber", user.number || user.fullNumber || "")
+        bodyData.append("Password", user.password || "")
+        bodyData.append("ConfirmPassword", user.confirmPassword || "")
+        bodyData.append("FullName", user.fullName || user.userName || "")
+        bodyData.append("Gender", user.gender || "1")
+        bodyData.append("PhotoUrl", user.image || "")
+        bodyData.append("AgeGroup", user.type || "1")
 
         try {
             const res = await fetch("https://mahinproject.runasp.net/api/Auth/register", {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
-                body: JSON.stringify(payload)
+                body: bodyData.toString()
             })
 
             const data = await res.json()
@@ -545,16 +545,19 @@ export default function SignUp() {
                 let token = data.token
                 let role = data.role || (Array.isArray(data.roles) && data.roles[0])
 
-                // 🔄 إذا لم يرجع الـ Register توكن مباشرة، نقوم بتسجيل الدخول تلقائياً
+                // 🔄 تسجيل الدخول تلقائياً إذا لم يُرجع التسجيل توكن مباشرة
                 if (!token) {
                     try {
+                        const loginBody = new URLSearchParams()
+                        loginBody.append("PhoneNumber", user.number || user.fullNumber || "")
+                        loginBody.append("Password", user.password || "")
+
                         const loginRes = await fetch("https://mahinproject.runasp.net/api/Auth/login", {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                phoneNumber: payload.phoneNumber,
-                                password: payload.password
-                            })
+                            headers: { 
+                                'Content-Type': 'application/x-www-form-urlencoded' 
+                            },
+                            body: loginBody.toString()
                         })
 
                         const loginData = await loginRes.json()
@@ -567,7 +570,6 @@ export default function SignUp() {
                     }
                 }
 
-                // 🔑 حفظ بيانات الجلسة وتوجيه المستخدم للـ Welcome
                 if (token) {
                     localStorage.setItem("token", token)
                     if (role) localStorage.setItem("userRole", role)
@@ -576,7 +578,6 @@ export default function SignUp() {
                     clearInputs()
                     router.push('/welcome')
                 } else {
-                    // في حالة عدم الحصول على التوكن يُعاد توجيهه لصفحة اللوجن
                     if (setForm) setForm("login")
                     router.push('/login')
                 }
@@ -649,7 +650,7 @@ export default function SignUp() {
                         <option value="1">اعدادي</option> 
                         <option value="2">ثانوي </option> 
                         <option value="3">جامعه و خرجين</option> 
-                        <option value="3">غير ذالك</option> 
+                        <option value="4">غير ذالك</option> 
                     </select>
                 </div>
                 
