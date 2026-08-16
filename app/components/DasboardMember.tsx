@@ -1,6 +1,12 @@
+// 
+
+
+
+
+
+
 "use client"
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { memberType } from '../assets/assets'
 import { useThemeContext } from '../assets/contexts'
@@ -52,8 +58,6 @@ export default function DasboardMember({ member }: DasboardMemberProps) {
         }
     }
 
-    const userImage = member?.image && member.image.trim() !== "" ? member.image : defaultImg
-
     return (
         <div className={`flex flex-col gap-4 rounded-2xl border p-3.5 transition-all duration-300 md:flex-row md:items-center md:justify-between ${
             isDark
@@ -62,14 +66,14 @@ export default function DasboardMember({ member }: DasboardMemberProps) {
         }`}>
             {/* معلومات المستخدم */}
             <div className="flex items-center gap-3.5">
-                <div className="relative">
-                    <Image
-                        src={userImage}
+                <div className="relative w-13 h-13 flex-shrink-0">
+                    <img
+                        src={member?.image && member.image.trim() !== "" ? member.image : defaultImg.src}
                         alt={member?.fullName || "Member Profile"}
-                        width={52}
-                        height={52}
-                        unoptimized
-                        className="h-13 w-13 rounded-full border-2 border-blue-600/30 object-cover shadow-sm"
+                        className="w-13 h-13 rounded-full border-2 border-blue-600/30 object-cover shadow-sm"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = defaultImg.src
+                        }}
                     />
                 </div>
 

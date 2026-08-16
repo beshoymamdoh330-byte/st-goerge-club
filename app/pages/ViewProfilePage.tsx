@@ -1,4 +1,8 @@
 
+
+
+
+
 // "use client"
 // import Image from 'next/image'
 // import { useState, useEffect } from 'react'
@@ -16,7 +20,8 @@
 //     CalendarEventFill, 
 //     HourglassSplit,
 //     CloudUploadFill,
-//     GenderAmbiguous
+//     GenderAmbiguous,
+//     Link45deg
 // } from 'react-bootstrap-icons'
 // import img from "../../public/images/st-george-killing-dragon.png"
 // import { useRouter } from 'next/navigation'
@@ -60,6 +65,7 @@
 //     fullNumber: string;
 //     email: string;
 //     image: string;
+//     nfcUrl?: string;
 //     role: string;
 //     isActive: boolean;
 //     ageGroup: string;
@@ -75,6 +81,7 @@
 //     fullNumber: "",
 //     email: "",
 //     image: "",
+//     nfcUrl: "",
 //     role: "",
 //     isActive: false,
 //     ageGroup: "غير محدد",
@@ -86,21 +93,23 @@
 
 // // دالة مساعدة لتحويل قيمة ageGroup إلى نص للعرض
 // const parseAgeGroupToString = (val?: string | number): string => {
-//     if (!val) return "غير محدد"
+//     if (!val && val !== 0) return "غير محدد"
 //     const strVal = String(val).trim()
-//     if (strVal === "1" || strVal.includes("ابتدائي")) return "ابتدائي"
-//     if (strVal === "2" || strVal.includes("إعدادي")) return "إعدادي"
-//     if (strVal === "3" || strVal.includes("ثانوي")) return "ثانوي"
+//     if (strVal === "0" || strVal.includes("ابتدائي")) return "ابتدائي"
+//     if (strVal === "1" || strVal.includes("إعدادي")) return "إعدادي"
+//     if (strVal === "2" || strVal.includes("ثانوي")) return "ثانوي"
+//     if (strVal === "3" || strVal.includes("خرجين")) return "شباب وخريجين"
 //     return strVal
 // }
 
 // // دالة مساعدة لتحويل قيمة ageGroup إلى رقم للباك إند
 // const parseAgeGroupToNumber = (val: string | number): number => {
 //     const strVal = String(val).trim()
-//     if (strVal === "1" || strVal.includes("ابتدائي")) return 1
-//     if (strVal === "2" || strVal.includes("إعدادي")) return 2
-//     if (strVal === "3" || strVal.includes("ثانوي")) return 3
-//     return Number(val) || 1
+//     if (strVal === "0" || strVal.includes("ابتدائي")) return 0
+//     if (strVal === "1" || strVal.includes("إعدادي")) return 1
+//     if (strVal === "2" || strVal.includes("ثانوي")) return 2
+//     if (strVal === "3" || strVal.includes("خرجين")) return 3
+//     return Number(val) || 0
 // }
 
 // export default function ViewProfilePage({ member }: { member?: Partial<ExtendedMemberType> }) {
@@ -108,6 +117,7 @@
 //     const router = useRouter()
 
 //     const [isAuthorized, setIsAuthorized] = useState<boolean>(false)
+//     const [isAdminUser, setIsAdminUser] = useState<boolean>(false) // 🔒 حالة للتحقق من صلاحية الأدمن
 //     const [isLoading, setIsLoading] = useState<boolean>(true)
 //     const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
@@ -120,8 +130,8 @@
 //         fullName: "",
 //         fullNumber: "",
 //         email: "",
-//         ageGroup: 1, // 1: ابتدائي, 2: إعدادي, 3: ثانوي
-//         gender: 1,   // 1: ذكر (Male), 2: أنثى (Female)
+//         ageGroup: 0,
+//         gender: 1,
 //         imageFile: null as File | null,
 //         imagePreview: ""
 //     })
@@ -146,6 +156,8 @@
 //                 } else if (typeof roleClaim === 'string') {
 //                     isAdmin = roleClaim.toLowerCase() === 'admin'
 //                 }
+
+//                 setIsAdminUser(isAdmin) // حفظ حالة الأدمن للتحكم بالواجهة
 
 //                 const currentUserId = (
 //                     decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
@@ -189,7 +201,7 @@
 //                             : "لا يوجد اشتراك نشط"
 
 //                         const rawGender = String(data.gender)
-//                         const isMale = rawGender === "1" || rawGender.toLowerCase() === "male"
+//                         const isMale = rawGender === "0" || rawGender === "1" ? rawGender === "0" : rawGender.toLowerCase() === "male"
 
 //                         const fetchedUser: ExtendedMemberType = {
 //                             id: data.id || userIdToFetch,
@@ -198,6 +210,7 @@
 //                             email: data.email || "",
 //                             isActive: data.isActive ?? false,
 //                             image: data.photoUrl || "",
+//                             nfcUrl: data.nfcUrl || "",
 //                             role: data.role || "user",
 //                             ageGroup: parseAgeGroupToString(data.ageGroup),
 //                             gender: isMale ? "Male" : "Female",
@@ -245,7 +258,7 @@
 //             fullNumber: userData.fullNumber || "",
 //             email: userData.email || "",
 //             ageGroup: parseAgeGroupToNumber(userData.ageGroup),
-//             gender: userData.gender === "Male" ? 1 : 2,
+//             gender: userData.gender === "Male" ? 0 : 1,
 //             imageFile: null,
 //             imagePreview: userData.image || ""
 //         })
@@ -262,7 +275,6 @@
 //             return
 //         }
 
-//         // جلب الـ ID من كافة المصادر المتاحة (FormData -> UserData -> Token)
 //         let currentId = formData.id || userData.id
 //         if (!currentId || String(currentId).trim() === "") {
 //             try {
@@ -287,21 +299,17 @@
 
 //         setIsSubmitting(true)
 
-//         // إعداد البيانات وتجنب إرسال null لأي حقل
 //         const updatePayload = {
 //             id: cleanId,
 //             fullName: formData.fullName?.trim() || userData.fullName || "",
 //             photoUrl: formData.imagePreview || userData.image || "",
 //             phoneNumber: formData.fullNumber?.trim() || userData.fullNumber || "",
 //             email: formData.email?.trim() || userData.email || "",
-//             ageGroup: Number(formData.ageGroup) || 1,
-//             gender: Number(formData.gender) || 1
+//             ageGroup: Number(formData.ageGroup),
+//             gender: Number(formData.gender)
 //         }
 
-//         console.log("🚀 Payload Being Sent:", JSON.stringify(updatePayload, null, 2))
-
 //         try {
-//             // إرسال طلب PUT مع إرفاق الـ ID في الـ Query String والـ Body لضمان التوافق مع الباك إند
 //             const res = await fetch(`https://mahinproject.runasp.net/api/User/update-user?id=${cleanId}`, {
 //                 method: "PUT",
 //                 headers: {
@@ -312,7 +320,6 @@
 //             })
 
 //             const responseData = await res.text()
-//             console.log("📥 Server Response:", responseData)
 
 //             if (res.ok) {
 //                 alert("تم حفظ التعديلات بنجاح! ✅")
@@ -324,7 +331,7 @@
 //                     fullNumber: updatePayload.phoneNumber,
 //                     email: updatePayload.email,
 //                     ageGroup: parseAgeGroupToString(updatePayload.ageGroup),
-//                     gender: updatePayload.gender === 1 ? "Male" : "Female",
+//                     gender: updatePayload.gender === 0 ? "Male" : "Female",
 //                     image: updatePayload.photoUrl
 //                 }))
 
@@ -453,7 +460,7 @@
 //                                 <option value={0}>ابتدائي (0)</option>
 //                                 <option value={1}>إعدادي (1)</option>
 //                                 <option value={2}>ثانوي (2)</option>
-//                                 <option value={3}>شباب و خرجين(3)</option>
+//                                 <option value={3}>شباب و خرجين (3)</option>
 //                             </select>
 //                         </div>
 
@@ -465,8 +472,8 @@
 //                                 onChange={(e) => setFormData({ ...formData, gender: Number(e.target.value) })}
 //                                 className='w-full p-3 rounded-2xl border border-blue-600 outline-none text-black dark:text-white bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500'
 //                             >
-//                                 <option value={0}>ذكر (1)</option>
-//                                 <option value={1}>أنثى (2)</option>
+//                                 <option value={0}>ذكر (0)</option>
+//                                 <option value={1}>أنثى (1)</option>
 //                             </select>
 //                         </div>
 
@@ -525,6 +532,28 @@
 //                             <h4 className="text-base font-bold truncate">{userData?.email || "غير مدخل"}</h4>
 //                         </div>
 //                     </div>
+
+//                     {/* 🔐 بوكس رابط الـ NFC - يظهر للأدمن فقط */}
+//                     {isAdminUser && (
+//                         <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
+//                             <Link45deg className="text-blue-600 text-2xl flex-shrink-0" />
+//                             <div className="overflow-hidden w-full">
+//                                 <p className="text-xs text-gray-500 dark:text-gray-400">رابط NFC (خاص بالمدير)</p>
+//                                 {userData?.nfcUrl ? (
+//                                     <a 
+//                                         href={userData.nfcUrl} 
+//                                         target="_blank" 
+//                                         rel="noopener noreferrer" 
+//                                         className="text-sm font-bold text-blue-600 hover:underline truncate blockDir transition-all"
+//                                     >
+//                                         {userData.nfcUrl}
+//                                     </a>
+//                                 ) : (
+//                                     <h4 className="text-sm font-bold text-gray-400">غير متوفر</h4>
+//                                 )}
+//                             </div>
+//                         </div>
+//                     )}
 
 //                     <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-blue-50/50 dark:bg-gray-800/50 border border-blue-100 dark:border-gray-700">
 //                         <GenderAmbiguous className="text-blue-600 text-xl flex-shrink-0" />
@@ -599,8 +628,9 @@
 
 
 
+
+
 "use client"
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useThemeContext } from '../assets/contexts'
 import { 
@@ -619,7 +649,7 @@ import {
     GenderAmbiguous,
     Link45deg
 } from 'react-bootstrap-icons'
-import img from "../../public/images/st-george-killing-dragon.png"
+import defaultImg from "../../public/images/st-george-killing-dragon.png"
 import { useRouter } from 'next/navigation'
 import { jwtDecode } from 'jwt-decode'
 
@@ -713,21 +743,20 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
     const router = useRouter()
 
     const [isAuthorized, setIsAuthorized] = useState<boolean>(false)
-    const [isAdminUser, setIsAdminUser] = useState<boolean>(false) // 🔒 حالة للتحقق من صلاحية الأدمن
+    const [isAdminUser, setIsAdminUser] = useState<boolean>(false)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
     const [edit, setEdit] = useState<boolean>(false)
     const [userData, setUserData] = useState<ExtendedMemberType>({ ...defaultMember, ...member })
 
-    // احتواء الـ id والبيانات في الـ formData
     const [formData, setFormData] = useState({
         id: "",
         fullName: "",
         fullNumber: "",
         email: "",
         ageGroup: 0,
-        gender: 1,
+        gender: 0,
         imageFile: null as File | null,
         imagePreview: ""
     })
@@ -753,7 +782,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     isAdmin = roleClaim.toLowerCase() === 'admin'
                 }
 
-                setIsAdminUser(isAdmin) // حفظ حالة الأدمن للتحكم بالواجهة
+                setIsAdminUser(isAdmin)
 
                 const currentUserId = (
                     decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
@@ -805,7 +834,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                             fullNumber: data.phoneNumber || "",
                             email: data.email || "",
                             isActive: data.isActive ?? false,
-                            image: data.photoUrl || "",
+                            image: data.photoUrl ? `${data.photoUrl}?t=${new Date().getTime()}` : "",
                             nfcUrl: data.nfcUrl || "",
                             role: data.role || "user",
                             ageGroup: parseAgeGroupToString(data.ageGroup),
@@ -846,7 +875,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
         }
     }
 
-    // ✏️ 3. فتح وتعبئة مودال التعديل بربط الـ id والبيانات الحالية
+    // ✏️ 3. فتح وتعبئة مودال التعديل
     const openEditModal = () => {
         setFormData({
             id: userData.id,
@@ -861,7 +890,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
         setEdit(true)
     }
 
-    // 💾 4. دالة التعديل بأسلوب PUT مع طباعة التفاصيل والتوافق الأقصى
+    // 💾 4. دالة التعديل (PUT) والتحديث المباشر للـ State
     const handleEdit = async (e: React.FormEvent) => {
         e.preventDefault()
         const token = localStorage.getItem("token")
@@ -876,7 +905,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
             try {
                 const decoded: DecodedToken = jwtDecode(token)
                 currentId = (
-                    decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+                    decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier"] ||
                     decoded.nameid ||
                     decoded.sub ||
                     ""
@@ -895,49 +924,57 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
 
         setIsSubmitting(true)
 
-        const updatePayload = {
-            id: cleanId,
-            fullName: formData.fullName?.trim() || userData.fullName || "",
-            photoUrl: formData.imagePreview || userData.image || "",
-            phoneNumber: formData.fullNumber?.trim() || userData.fullNumber || "",
-            email: formData.email?.trim() || userData.email || "",
-            ageGroup: Number(formData.ageGroup),
-            gender: Number(formData.gender)
-        }
-
         try {
-            const res = await fetch(`https://mahinproject.runasp.net/api/User/update-user?id=${cleanId}`, {
+            const data = new FormData()
+            data.append("Id", cleanId)
+            data.append("FullName", formData.fullName?.trim() || userData.fullName)
+            data.append("PhoneNumber", formData.fullNumber?.trim() || userData.fullNumber)
+            data.append("Email", formData.email?.trim() || userData.email)
+            data.append("AgeGroup", String(formData.ageGroup))
+            data.append("Gender", String(formData.gender))
+
+            if (formData.imageFile) {
+                data.append("PhotoUrl", formData.imageFile)
+            }
+
+            const res = await fetch(`https://mahinproject.runasp.net/api/User/update-user/${cleanId}`, {
                 method: "PUT",
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify(updatePayload)
+                body: data
             })
 
-            const responseData = await res.text()
-
             if (res.ok) {
+                const updatedBackendData = await res.json().catch(() => null)
+
+                setUserData(prev => {
+                    const returnedPhoto = updatedBackendData?.photoUrl || updatedBackendData?.PhotoUrl
+                    const finalPhoto = returnedPhoto 
+                        ? `${returnedPhoto}?t=${new Date().getTime()}` 
+                        : (formData.imagePreview || prev.image)
+
+                    return {
+                        ...prev,
+                        fullName: updatedBackendData?.fullName || updatedBackendData?.FullName || formData.fullName,
+                        fullNumber: updatedBackendData?.phoneNumber || updatedBackendData?.PhoneNumber || formData.fullNumber,
+                        email: updatedBackendData?.email || updatedBackendData?.Email || formData.email,
+                        ageGroup: parseAgeGroupToString(updatedBackendData?.ageGroup ?? formData.ageGroup),
+                        gender: (updatedBackendData?.gender ?? formData.gender) == 0 ? "Male" : "Female",
+                        image: finalPhoto
+                    }
+                })
+
                 alert("تم حفظ التعديلات بنجاح! ✅")
-
-                setUserData(prev => ({
-                    ...prev,
-                    id: cleanId,
-                    fullName: updatePayload.fullName,
-                    fullNumber: updatePayload.phoneNumber,
-                    email: updatePayload.email,
-                    ageGroup: parseAgeGroupToString(updatePayload.ageGroup),
-                    gender: updatePayload.gender === 0 ? "Male" : "Female",
-                    image: updatePayload.photoUrl
-                }))
-
                 setEdit(false)
             } else {
+                const responseData = await res.text()
+                console.error("Backend Error Response:", responseData)
                 alert(`فشل التحديث من الباك إند (${res.status}):\n${responseData}`)
             }
-        } catch (error) {
-            console.error("Fetch Error:", error)
-            alert("حدث خطأ في الاتصال بالباك إند")
+        } catch (error: any) {
+            console.error("Fetch Error Details:", error)
+            alert(`حدث خطأ أثناء الاتصال بالباك إند:\n${error?.message || "يرجى التحقق من استجابة السيرفر"}`)
         } finally {
             setIsSubmitting(false)
         }
@@ -993,12 +1030,13 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                         {/* photoUrl */}
                         <div className="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-4 border-2 border-dashed border-blue-400 rounded-2xl mb-2">
                             <div className="relative w-28 h-28 rounded-full overflow-hidden border-2 border-blue-600 mb-3 shadow-md">
-                                <Image
-                                    src={formData.imagePreview && formData.imagePreview.trim() !== "" ? formData.imagePreview : img}
+                                <img
+                                    src={formData.imagePreview && formData.imagePreview.trim() !== "" ? formData.imagePreview : defaultImg.src}
                                     alt="Preview"
-                                    fill
-                                    unoptimized
-                                    className="object-cover"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = defaultImg.src
+                                    }}
                                 />
                             </div>
 
@@ -1090,12 +1128,13 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
 
                 <div className="flex flex-col items-center justify-center col-span-1">
                     <div className="relative w-48 h-48 md:w-60 md:h-60 border-4 border-blue-600 rounded-full overflow-hidden shadow-lg mb-4">
-                        <Image
-                            src={userData?.image && userData.image.trim() !== "" ? userData.image : img}
+                        <img
+                            src={userData?.image && userData.image.trim() !== "" ? userData.image : defaultImg.src}
                             alt={userData?.fullName || 'User Profile'}
-                            fill
-                            unoptimized
-                            className='object-cover'
+                            className='w-full h-full object-cover'
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = defaultImg.src
+                            }}
                         />
                     </div>
                     <span className={`px-4 py-1.5 rounded-full text-sm font-semibold ${userData?.isActive ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"}`}>
@@ -1140,7 +1179,7 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                                         href={userData.nfcUrl} 
                                         target="_blank" 
                                         rel="noopener noreferrer" 
-                                        className="text-sm font-bold text-blue-600 hover:underline truncate blockDir transition-all"
+                                        className="text-sm font-bold text-blue-600 hover:underline truncate block transition-all"
                                     >
                                         {userData.nfcUrl}
                                     </a>
