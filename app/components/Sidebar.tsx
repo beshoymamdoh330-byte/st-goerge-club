@@ -125,9 +125,14 @@ export default function Sidebar() {
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        <span className="font-bold text-lg tracking-wide text-blue-600">
-                            St.George.Club
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                            <span className="font-bold text-lg tracking-wide text-blue-600">
+                                <span style={{margin:"0 10px 0 0"}}> P I</span>   R O M I O S
+                            </span>
+                            <p style={{fontSize:"15px" , color:"gray"}}>
+                                ⲡⲓⲙⲁ ⲛ̀ϫⲱⲕ ⲛ̀ⲧⲉ ⲡⲓⲣⲱⲙⲁⲛⲓ
+                            </p>
+                        </div>
                     </div>
 
                     {/* 🔹 أزرار التحكم العليا */}
