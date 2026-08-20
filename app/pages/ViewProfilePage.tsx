@@ -1056,6 +1056,68 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
         imagePreview: ""
     })
 
+    const fetchUserData = async (userIdToFetch: string, token: string) => {
+        try {
+            const res = await fetch(`https://mahinproject.runasp.net/api/User/get-user/${userIdToFetch}`, {
+                headers: { 
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            })
+
+            if (res.ok) {
+                const data: UserApiResponse = await res.json()
+                const sub = data.activeSubscription
+
+                const formattedStartDate = sub?.startDate 
+                    ? new Date(sub.startDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
+                    : "غير محدد"
+
+                const formattedEndDate = sub?.endDate 
+                    ? new Date(sub.endDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
+                    : "غير محدد"
+
+                const subId = 
+                    sub?.id ?? 
+                    sub?.subscriptionId ?? 
+                    sub?.userSubscriptionId ??
+                    null;
+
+                const hasSub = Boolean(subId && (sub?.isActive ?? true))
+
+                const subscriptionTitle = hasSub
+                    ? `${sub?.planName || "اشتراك نشط"} ${sub?.price ? `(${sub.price} ج.م)` : ''}` 
+                    : "لا يوجد اشتراك نشط"
+
+                const rawGender = String(data.gender)
+                const isMale = rawGender === "0" || rawGender === "1" ? rawGender === "0" : rawGender.toLowerCase() === "male"
+
+                const fetchedUser: ExtendedMemberType = {
+                    id: data.id || userIdToFetch,
+                    subscriptionId: subId,
+                    fullName: data.fullName || "",
+                    fullNumber: data.phoneNumber || "",
+                    email: data.email || "",
+                    isActive: data.isActive ?? false,
+                    image: data.photoUrl ? `${data.photoUrl}?t=${new Date().getTime()}` : "",
+                    nfcUrl: data.nfcUrl || "",
+                    role: data.role || "User",
+                    roleId: data.roleId || "",
+                    ageGroup: parseAgeGroupToString(data.ageGroup),
+                    gender: isMale ? "Male" : "Female",
+                    subscriptionName: subscriptionTitle,
+                    hasActiveSubscription: hasSub,
+                    createdAt: formattedStartDate,
+                    expirationDate: formattedEndDate
+                }
+
+                setUserData(fetchedUser)
+            }
+        } catch (error) {
+            console.error("Fetch User Data Error:", error)
+        }
+    }
+
     useEffect(() => {
         const verifyAndFetch = async () => {
             const token = localStorage.getItem("token")
@@ -1096,64 +1158,10 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                 const userIdToFetch = targetUserId || currentUserId || userData.id
 
                 if (userIdToFetch) {
-                    const res = await fetch(`https://mahinproject.runasp.net/api/User/get-user/${userIdToFetch}`, {
-                        headers: { 
-                            "Authorization": `Bearer ${token}`,
-                            "Content-Type": "application/json"
-                        }
-                    })
-
-                    if (res.ok) {
-                        const data: UserApiResponse = await res.json()
-                        const sub = data.activeSubscription
-
-                        const formattedStartDate = sub?.startDate 
-                            ? new Date(sub.startDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
-                            : "غير محدد"
-
-                        const formattedEndDate = sub?.endDate 
-                            ? new Date(sub.endDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
-                            : "غير محدد"
-
-                        const subId = 
-                            sub?.id ?? 
-                            sub?.subscriptionId ?? 
-                            sub?.userSubscriptionId ??
-                            null;
-
-                        const hasSub = Boolean(subId && (sub?.isActive ?? true))
-
-                        const subscriptionTitle = hasSub
-                            ? `${sub?.planName || "اشتراك نشط"} ${sub?.price ? `(${sub.price} ج.م)` : ''}` 
-                            : "لا يوجد اشتراك نشط"
-
-                        const rawGender = String(data.gender)
-                        const isMale = rawGender === "0" || rawGender === "1" ? rawGender === "0" : rawGender.toLowerCase() === "male"
-
-                        const fetchedUser: ExtendedMemberType = {
-                            id: data.id || userIdToFetch,
-                            subscriptionId: subId,
-                            fullName: data.fullName || "",
-                            fullNumber: data.phoneNumber || "",
-                            email: data.email || "",
-                            isActive: data.isActive ?? false,
-                            image: data.photoUrl ? `${data.photoUrl}?t=${new Date().getTime()}` : "",
-                            nfcUrl: data.nfcUrl || "",
-                            role: data.role || "User",
-                            roleId: data.roleId || "",
-                            ageGroup: parseAgeGroupToString(data.ageGroup),
-                            gender: isMale ? "Male" : "Female",
-                            subscriptionName: subscriptionTitle,
-                            hasActiveSubscription: hasSub,
-                            createdAt: formattedStartDate,
-                            expirationDate: formattedEndDate
-                        }
-
-                        setUserData(fetchedUser)
-                    }
+                    await fetchUserData(userIdToFetch, token)
                 }
             } catch (error) {
-                console.error("Authorization or fetch error:", error)
+                console.error("Authorization error:", error)
                 localStorage.removeItem("token")
                 router.replace('/')
             } finally {
@@ -1299,27 +1307,8 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
             })
 
             if (res.ok) {
-                const subData: SubscriptionResponseDto = await res.json()
-
                 alert("تم إضافة وتفعيل الاشتراك بنجاح! 🎉")
-
-                const formattedStartDate = subData.startDate 
-                    ? new Date(subData.startDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
-                    : "غير محدد"
-
-                const formattedEndDate = subData.endDate 
-                    ? new Date(subData.endDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) 
-                    : "غير محدد"
-
-                setUserData(prev => ({
-                    ...prev,
-                    subscriptionId: subData.id,
-                    hasActiveSubscription: subData.isActive ?? true,
-                    subscriptionName: `${subData.planName?.trim() || plan.name} (${subData.price} ج.م)`,
-                    createdAt: formattedStartDate,
-                    expirationDate: formattedEndDate
-                }))
-
+                await fetchUserData(userData.id, token)
                 setShowSubModal(false)
             } else {
                 const errText = await res.text()
@@ -1342,11 +1331,6 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
     const handleCancelSubscription = async () => {
         const subId = userData.subscriptionId
 
-        if (!subId) {
-            alert("❌ لم يتم العثور على معرّف اشتراك نشط للإلغاء.")
-            return
-        }
-
         if (!confirm("⚠️ هل أنت متأكد من رغبتك في إلغاء الاشتراك الحالي؟")) {
             return
         }
@@ -1355,54 +1339,46 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
         if (!token) return
 
         try {
-            let res = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription?subscriptionId=${subId}`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
-            })
+            let isSuccess = false
 
-            if (!res.ok) {
-                res = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription/${subId}`, {
+            if (subId) {
+                const res1 = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription?subscriptionId=${subId}`, {
                     method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ subscriptionId: Number(subId), id: Number(subId) })
+                    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" }
                 })
+                if (res1.ok) isSuccess = true
             }
 
-            if (!res.ok) {
-                res = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription/${subId}`, {
+            if (!isSuccess) {
+                const res2 = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: userData.id, subscriptionId: subId })
+                })
+                if (res2.ok) isSuccess = true
+            }
+
+            if (!isSuccess && subId) {
+                const res3 = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription/${subId}`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" }
+                })
+                if (res3.ok) isSuccess = true
+            }
+
+            if (!isSuccess && subId) {
+                const res4 = await fetch(`https://mahinproject.runasp.net/api/Subscription/cancel-Subscription/${subId}`, {
                     method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    }
+                    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" }
                 })
+                if (res4.ok) isSuccess = true
             }
 
-            if (res.ok) {
-                alert("تم إلغاء الاشتراك بنجاح! 🛑 يمكنك الآن إضافة اشتراك جديد.")
-                setUserData(prev => ({
-                    ...prev,
-                    hasActiveSubscription: false,
-                    subscriptionName: "لا يوجد اشتراك نشط",
-                    subscriptionId: null,
-                    createdAt: "غير محدد",
-                    expirationDate: "غير محدد"
-                }))
+            if (isSuccess) {
+                alert("تم إلغاء الاشتراك بنجاح! 🛑")
+                await fetchUserData(userData.id, token)
             } else {
-                const errText = await res.text()
-                let parsedMessage = errText
-                try {
-                    const parsed = JSON.parse(errText)
-                    if (parsed.message) parsedMessage = parsed.message
-                } catch {}
-
-                alert(`❌ فشل إلغاء الاشتراك:\n${parsedMessage || res.statusText}`)
+                alert("❌ تعذر إلغاء الاشتراك من السيرفر. يرجى التواصل مع المسؤول.")
             }
         } catch (error) {
             console.error("Error canceling subscription:", error)
@@ -1497,8 +1473,6 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                 body: data
             })
 
-            let isRoleSuccess = true
-
             const isRoleChanged = formData.roleId && (formData.roleId !== userData.roleId && formData.roleName !== userData.role)
 
             if (isAdminUser && isRoleChanged) {
@@ -1515,7 +1489,6 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                 })
 
                 if (!updateRoleRes.ok) {
-                    isRoleSuccess = false
                     const roleErrText = await updateRoleRes.text()
                     console.error("Update Role Error Response:", roleErrText)
                     alert(`⚠️ تعذر تحديث الدور: ${roleErrText || updateRoleRes.statusText}`)
@@ -1523,37 +1496,8 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
             }
 
             if (userRes.ok) {
-                const updatedBackendData = await userRes.json().catch(() => null)
-
-                const newAgeGroupVal = updatedBackendData?.ageGroup ?? updatedBackendData?.AgeGroup ?? formData.ageGroup
-                const newGenderVal = updatedBackendData?.gender ?? updatedBackendData?.Gender ?? formData.gender
-
-                const returnedPhoto = updatedBackendData?.photoUrl || updatedBackendData?.PhotoUrl
-                const finalPhoto = returnedPhoto 
-                    ? `${returnedPhoto}?t=${new Date().getTime()}` 
-                    : (formData.imagePreview || userData.image)
-
-                const newFullName = updatedBackendData?.fullName || updatedBackendData?.FullName || formData.fullName
-                const newPhoneNumber = updatedBackendData?.phoneNumber || updatedBackendData?.PhoneNumber || formData.fullNumber
-                const newEmail = updatedBackendData?.email || updatedBackendData?.Email || formData.email
-                
-                const selectedRoleObj = rolesList.find(r => r.id === formData.roleId)
-                const newRoleName = (isAdminUser && isRoleChanged && isRoleSuccess) ? (selectedRoleObj?.name || formData.roleName) : userData.role
-                const newRoleId = (isAdminUser && isRoleChanged && isRoleSuccess) ? formData.roleId : userData.roleId
-
-                setUserData(prev => ({
-                    ...prev,
-                    fullName: newFullName,
-                    fullNumber: newPhoneNumber,
-                    email: newEmail,
-                    role: newRoleName,
-                    roleId: newRoleId,
-                    ageGroup: parseAgeGroupToString(newAgeGroupVal),
-                    gender: String(newGenderVal) === "0" || String(newGenderVal).toLowerCase() === "male" ? "Male" : "Female",
-                    image: finalPhoto
-                }))
-
                 alert("تم حفظ وتحديث التعديلات بنجاح! ✅")
+                await fetchUserData(cleanId, token)
                 setEdit(false)
             } else {
                 const responseData = await userRes.text()
@@ -1655,13 +1599,13 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     <ExclamationTriangleFill className="text-2xl flex-shrink-0" />
                     <div>
                         <h3 className="font-bold text-lg">عذراً، برجاء الاشتراك</h3>
-                        <p className="text-sm text-red-100">لا يوجد اشتراك نشط لهذا الحساب حالياً. يرجى تجديد الاشتراك للاستفادة من كامل الخدمات.</p>
+                        <p className="text-sm text-red-100">لا يوجد اشتراك نشط لهذا الحساب حالياً. يرجى التواصل مع الإدارة للتفعيل.</p>
                     </div>
                 </div>
             )}
 
-            {/* Modal - إضافة اشتراك جديد */}
-            {showSubModal && (
+            {/* Modal - إضافة اشتراك جديد (للمسؤول فقط) */}
+            {showSubModal && isAdminUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className={`w-full max-w-2xl p-6 rounded-3xl border-2 border-green-600 shadow-2xl relative max-h-[85vh] overflow-y-auto ${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"}`}>
                         <div className="flex justify-between items-center mb-6 border-b pb-3 border-gray-200 dark:border-gray-700">
@@ -1786,23 +1730,26 @@ export default function ViewProfilePage({ member }: { member?: Partial<ExtendedM
                     </div>
                 </div>
 
-                <div className="w-full flex flex-wrap gap-4 justify-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                    <button
-                        onClick={handleOpenSubModal}
-                        className="py-2.5 px-6 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition-all flex items-center gap-2 cursor-pointer shadow-md"
-                    >
-                        <PlusCircleFill /> إضافة / تفعيل اشتراك
-                    </button>
-
-                    {userData.hasActiveSubscription && (
+                {/* تظهر أزرار الإضافة والإلغاء للأدمن/المسؤول فقط */}
+                {isAdminUser && (
+                    <div className="w-full flex flex-wrap gap-4 justify-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
                         <button
-                            onClick={handleCancelSubscription}
-                            className="py-2.5 px-6 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-all flex items-center gap-2 cursor-pointer shadow-md"
+                            onClick={handleOpenSubModal}
+                            className="py-2.5 px-6 rounded-xl font-bold text-white bg-green-600 hover:bg-green-700 transition-all flex items-center gap-2 cursor-pointer shadow-md"
                         >
-                            <Trash2Fill /> إلغاء الاشتراك الحالي
+                            <PlusCircleFill /> إضافة / تفعيل اشتراك
                         </button>
-                    )}
-                </div>
+
+                        {userData.hasActiveSubscription && (
+                            <button
+                                onClick={handleCancelSubscription}
+                                className="py-2.5 px-6 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-all flex items-center gap-2 cursor-pointer shadow-md"
+                            >
+                                <Trash2Fill /> إلغاء الاشتراك الحالي
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Modal - تعديل البيانات */}
