@@ -177,7 +177,23 @@ export default function Sidebar() {
                                 <Speedometer2 className="text-xl" />
                                 <span>لوحة التحكم (Admin)</span>
                             </Link>
+                            
                         )}
+                        {isAdmin && (
+                            <Link
+                                href="/dashboard"
+                                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 mb-2 ${
+                                    pathname.startsWith('/dashboard')
+                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                        : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+                                }`}
+                            >
+                                <Speedometer2 className="text-xl" />
+                                <span>اضافه دور جديد(Admin)</span>
+                            </Link>
+                            
+                        )}
+                        
 
                         {/* باقي روابط السايدبار (تظهر للجميع) */}
                         {navItems.map((item) => {

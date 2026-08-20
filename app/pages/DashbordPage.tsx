@@ -28,6 +28,7 @@ import DashboardContent from '../components/DashboardContent'
 import DashboardMembers from '../components/DashboardMembers'
 import DashboardSubs from '../components/DashboardSubs'
 import { useThemeContext } from '../assets/contexts'
+import DashboardPlayGround from '../components/DashboardPlayGround'
 
 export default function DashbordPage() {
     const { theme } = useThemeContext()
@@ -38,6 +39,7 @@ export default function DashbordPage() {
             <section className='grid grid-cols-1 items-start md:grid-cols-2 gap-2.5 mt-5'>
                 <DashboardMembers />
                 <DashboardSubs />
+                <DashboardPlayGround/>
             </section>
         </main>
     )
